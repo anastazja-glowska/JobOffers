@@ -12,12 +12,29 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
-class InMemoryUserRepository implements UserRepository {
+class UserRepositoryTestImpl implements UserRepository {
+
+    Map<String, User> usersDatabase = new ConcurrentHashMap<>();
 
 
     @Override
     public Optional<User> findByEmail(String email) {
-        return Optional.empty();
+        User user1 = usersDatabase.values().stream()
+                .filter(user -> user.getEmail().equals(email)).findFirst().orElse(null);
+        return Optional.ofNullable(user1);
+    }
+
+    @Override
+    public User  save(User user) {
+        usersDatabase.put(user.getId(),  user);
+        return user;
+    }
+
+    @Override
+    public boolean existsById(String s) {
+        return usersDatabase.containsKey(s);
+
+
     }
 
     @Override
@@ -65,10 +82,7 @@ class InMemoryUserRepository implements UserRepository {
         return null;
     }
 
-    @Override
-    public <S extends User> S save(S entity) {
-        return null;
-    }
+
 
     @Override
     public <S extends User> List<S> saveAll(Iterable<S> entities) {
@@ -80,10 +94,7 @@ class InMemoryUserRepository implements UserRepository {
         return Optional.empty();
     }
 
-    @Override
-    public boolean existsById(String s) {
-        return false;
-    }
+
 
     @Override
     public List<User> findAll() {
