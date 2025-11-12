@@ -1,19 +1,30 @@
 package pl.joboffers.domain.offer;
 
+
+import lombok.RequiredArgsConstructor;
+import pl.joboffers.domain.offer.dto.OfferDto;
+
+import java.util.List;
+
+@RequiredArgsConstructor
 public class OfferFacade {
 
-    public String findAllOffers(){
-        return "all";
+    private final OfferAdder offerAdder;
+    private final OfferFetcher offerFetcher;
+    private final OfferRetriever offerRetriever;
+
+    public List<OfferDto> findAllOffers(){
+        return offerRetriever.findAllOffers();
     }
 
-    public String findOfferById(Long id){
-        return "id";
+    public OfferDto findOfferById(String id){
+        return offerRetriever.findOfferById(id);
     }
 
-    public String saveOffer(String offer){
-        return "offer";
+    public OfferDto saveOffer(Offer offer){
+        return offerAdder.saveOffer(offer);
     }
-    public void fetchAllOffersAndSaveIfNotExists(){
-
+    public List<OfferDto> fetchAllOffersAndSaveIfNotExists(){
+        return offerFetcher.fetchAllOffersAndSaveAllIfNotExists();
     }
 }
