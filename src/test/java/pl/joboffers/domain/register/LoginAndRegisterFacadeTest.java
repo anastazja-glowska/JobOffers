@@ -3,6 +3,7 @@ package pl.joboffers.domain.register;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import pl.joboffers.domain.register.dto.UserDto;
+import pl.joboffers.domain.register.dto.UserRegisterResponseDto;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
@@ -67,21 +68,20 @@ class LoginAndRegisterFacadeTest {
         User user = new User("001", "email@gmail.com", "12345678");
 
         //when
-        UserDto result = loginAndRegisterFacade.register(user);
+        UserRegisterResponseDto result = loginAndRegisterFacade.register(user);
 
         //then
 
         //then
-        UserDto expectedUser = UserDto.builder()
+        UserRegisterResponseDto expectedUser = UserRegisterResponseDto.builder()
                 .id("001")
                 .email("email@gmail.com")
-                .password("12345678")
+                .isRegistered(true)
                 .build();
 
         assertThat(result).isEqualTo(expectedUser);
         assertThat(result).isNotNull();
         assertThat(result.email()).isEqualTo(expectedUser.email());
-        assertThat(result.password()).isEqualTo(expectedUser.password());
 
     }
 

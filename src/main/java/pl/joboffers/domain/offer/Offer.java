@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.testcontainers.shaded.org.checkerframework.common.aliasing.qual.Unique;
 
 @Getter
 @Setter
@@ -25,6 +26,7 @@ class Offer {
 
     private String salary;
 
+    @Unique
     private String offerUrl;
 
 

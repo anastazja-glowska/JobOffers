@@ -34,7 +34,5 @@ class OfferRetriever {
         return offerRepository.existsOfferByOfferUrl(offerUrl);
     }
 
-//    boolean existsOfferById(Long id){
-//        return offerRepository.existsById(id);
-//    }
+
 }

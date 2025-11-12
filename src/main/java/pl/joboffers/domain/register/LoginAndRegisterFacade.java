@@ -2,6 +2,7 @@ package pl.joboffers.domain.register;
 
 import lombok.RequiredArgsConstructor;
 import pl.joboffers.domain.register.dto.UserDto;
+import pl.joboffers.domain.register.dto.UserRegisterResponseDto;
 
 @RequiredArgsConstructor
 public class LoginAndRegisterFacade {
@@ -13,7 +14,7 @@ public class LoginAndRegisterFacade {
         return userRetriever.findByUserName(userName);
     }
 
-    public UserDto register(User user) {
+    public UserRegisterResponseDto register(User user) {
         return userAdder.register(user);
     }
 }
