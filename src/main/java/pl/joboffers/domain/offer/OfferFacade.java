@@ -24,6 +24,8 @@ public class OfferFacade {
     public OfferDto saveOffer(Offer offer){
         return offerAdder.saveOffer(offer);
     }
+
+
     public List<OfferDto> fetchAllOffersAndSaveIfNotExists(){
         return offerFetcher.fetchAllOffersAndSaveAllIfNotExists();
     }

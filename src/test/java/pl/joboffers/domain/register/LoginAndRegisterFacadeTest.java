@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class LoginAndRegisterFacadeTest {
 
-    LoginAndRegisterFacade loginAndRegisterFacade = new LoginAndRegisterFacade();
+//    LoginAndRegisterFacade loginAndRegisterFacade = new LoginAndRegisterFacade();
 
     @Test
     void should_throw_exception_when_user_not_found(){

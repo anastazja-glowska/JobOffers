@@ -1,12 +1,14 @@
 package pl.joboffers.domain.offer;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 import pl.joboffers.domain.offer.dto.OfferDto;
 
 import java.util.List;
 import java.util.Set;
 
 @RequiredArgsConstructor
+@Service
 class OfferRetriever {
 
     private final OfferRepository offerRepository;

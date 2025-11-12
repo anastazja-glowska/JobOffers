@@ -1,27 +1,30 @@
 package pl.joboffers.domain.offer;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 import pl.joboffers.domain.offer.dto.OfferDto;
 import pl.joboffers.domain.offer.dto.RemoteOfferDto;
 
 import java.util.List;
 
 @RequiredArgsConstructor
+@Component
 class OfferFetcher {
     
     private final OfferRepository offerRepository;
     private final RemoteOfferFetcher remoteOfferFetcher;
     
     List<OfferDto> fetchAllOffersAndSaveAllIfNotExists(){
-        List<Offer> offers = offerRepository.findAll();
+        List<RemoteOfferDto> remoteOffers = remoteOfferFetcher.fetchOffersFromServer();
 
-        if(offers == null ||offers.isEmpty()){
-            List<RemoteOfferDto> remoteOfferDtos = remoteOfferFetcher.fetchOffersFromServer();
-            List<Offer> offerList = OfferMapper.mapFromRemoteOfferDtos(remoteOfferDtos);
-            offerRepository.saveAll(offerList);
-            return OfferMapper.mapFromOffers(offerList);
-        }
-        return List.of();
+        List<RemoteOfferDto> newRemoteOffers = remoteOffers.stream()
+                .filter(remoteOfferDto -> !offerRepository.existsOfferByOfferUrl(remoteOfferDto.offerUrl()))
+                .toList();
+
+        List<Offer> toSave = OfferMapper.mapFromRemoteOfferDtos(newRemoteOffers);
+
+        offerRepository.saveAll(toSave);
+        return OfferMapper.mapFromOffers(toSave);
     }
     
     

@@ -2,9 +2,11 @@ package pl.joboffers.domain.offer;
 
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 import pl.joboffers.domain.offer.dto.OfferDto;
 
 @RequiredArgsConstructor
+@Component
 class OfferAdder {
 
     private final OfferRepository offerRepository;
