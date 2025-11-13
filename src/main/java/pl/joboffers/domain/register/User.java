@@ -6,10 +6,10 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.jetbrains.annotations.NotNull;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.testcontainers.shaded.org.checkerframework.common.aliasing.qual.Unique;
+
 
 @Getter
 @Setter
@@ -22,10 +22,10 @@ class User {
     @Id
     private String id;
 
-    @Unique
+
     private String email;
 
-    @NotNull
+
     private String password;
 
     User(String email, String password) {

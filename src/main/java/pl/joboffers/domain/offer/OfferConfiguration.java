@@ -6,6 +6,11 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 class OfferConfiguration {
 
+//    @Bean
+//    RemoteOfferFetcher remoteOfferFetcher() {
+//        return new RemoteOfferRetriever();;
+//    }
+
     @Bean
     OfferFacade offerFacade(OfferAdder offerAdder, OfferFetcher offerFetcher,
                             OfferRetriever offerRetriever) {

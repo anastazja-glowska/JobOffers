@@ -1,9 +1,11 @@
 package pl.joboffers.domain.offer;
 
+import org.springframework.stereotype.Component;
 import pl.joboffers.domain.offer.dto.RemoteOfferDto;
 
 import java.util.List;
 
+@Component
 class RemoteOfferRetriever implements RemoteOfferFetcher {
 
 
