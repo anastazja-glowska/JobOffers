@@ -26,7 +26,7 @@ class OfferMapper {
     static List<Offer> mapFromRemoteOfferDtos(List<RemoteOfferDto> remoteOfferDtos) {
         return remoteOfferDtos.stream()
                 .map(remoteOfferDto -> new Offer(
-                        remoteOfferDto.id(), remoteOfferDto.title(), remoteOfferDto.company(),
+                        remoteOfferDto.title(), remoteOfferDto.company(),
                         remoteOfferDto.salary(), remoteOfferDto.offerUrl()
                 )).toList();
     }

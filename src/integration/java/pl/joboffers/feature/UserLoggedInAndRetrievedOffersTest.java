@@ -1,18 +1,53 @@
 package pl.joboffers.feature;
 
+import com.github.tomakehurst.wiremock.client.WireMock;
+import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
 import pl.joboffers.BaseIntegrationTest;
+import pl.joboffers.WireMockJobOffersResponse;
+import pl.joboffers.domain.offer.RemoteOfferFetcher;
+import pl.joboffers.domain.offer.dto.RemoteOfferDto;
 
-class UserLoggedInAndRetrievedOffersTest extends BaseIntegrationTest {
+import java.util.List;
 
+@Log4j2
+//@SpringBootTest(properties = {
+//        "job.offers.http.client.url=http://localhost",
+//        "job.offers.http.client.port=8089"
+//})
+class UserLoggedInAndRetrievedOffersTest extends BaseIntegrationTest implements WireMockJobOffersResponse {
+
+
+    @Autowired
+    RemoteOfferFetcher remoteOfferFetcher;
 
     @Test
     @DisplayName("Should user register and log in and then he can retrieve offers")
     void should_user_register_and_log_in_and_then_he_can_retrieve_offers(){
 
 
-//        step 1: there are no offers in external HTTP server (http://ec2-3-120-147-150.eu-central-1.compute.amazonaws.com:5057/offers)
+//        step 1: there are no offers in external HTTP server (http://ec2-3-127-218-34.eu-central-1.compute.amazonaws.com:5057/offers)
+
+        //given
+
+        wireMockServer.stubFor(WireMock.get("/offers")
+                .willReturn(WireMock.aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(retrieveZeroOffersJson())));
+
+
+
+        //when
+        List<RemoteOfferDto> remoteOfferDtos = remoteOfferFetcher.fetchOffersFromServer();
+        log.info("Remote offers " + remoteOfferDtos);
+
+        //then
+
 //        step 2: scheduler ran 1st time and made GET to external server and system added 0 offers to database
 //        step 3: user tried to get JWT token by requesting POST /token with username=someUser, password=somePassword and system returned UNAUTHORIZED(401)
 //        step 4: user made GET /offers with no jwt token and system returned UNAUTHORIZED(401)
