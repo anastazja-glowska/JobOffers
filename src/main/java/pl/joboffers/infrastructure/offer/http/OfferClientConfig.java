@@ -18,14 +18,13 @@ public class OfferClientConfig {
     }
 
     @Bean
-    public RestTemplate restTemplate(@Value("${job.offers.http.client.connectionTimeout}" ) long connectionTimeout,
-                                     @Value("${job.offers.http.client.readTimeout}" ) long readTimeout,
+    public RestTemplate restTemplate(JobOffersRestTemplateTimeoutConfig restTemplateTimeoutConfig,
                                          RestTemplateResponseErrorHandler restTemplateResponseErrorHandler) {
 
         return new RestTemplateBuilder()
                 .errorHandler(restTemplateResponseErrorHandler)
-                .setConnectTimeout(Duration.ofMillis(connectionTimeout))
-                .setReadTimeout(Duration.ofMillis(readTimeout))
+                .setConnectTimeout(Duration.ofMillis(restTemplateTimeoutConfig.connectionTimeout()))
+                .setReadTimeout(Duration.ofMillis(restTemplateTimeoutConfig.readTimeout()))
                 .build();
     }
 

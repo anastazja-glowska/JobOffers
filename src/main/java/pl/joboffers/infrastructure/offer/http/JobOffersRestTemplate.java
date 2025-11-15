@@ -39,15 +39,8 @@ class JobOffersRestTemplate implements RemoteOfferFetcher {
         final HttpEntity<HttpHeaders> entity = new HttpEntity<>(headers);
 
 
-        String uri = UriComponentsBuilder.fromHttpUrl(BASE_URL + ":" + port + OFFERS).toUriString();
+        String remoteOfferDtos = retrieveResponseBody(entity);
 
-        ResponseEntity<String> response = restTemplate.exchange(uri,
-                HttpMethod.GET,
-                entity,
-                new ParameterizedTypeReference<>() {
-                });
-
-        String remoteOfferDtos = response.getBody();
         if(remoteOfferDtos == null || remoteOfferDtos.isEmpty()){
             log.warn("No offers found");
             return List.of();
@@ -66,5 +59,18 @@ class JobOffersRestTemplate implements RemoteOfferFetcher {
         }
 
 
+    }
+
+    private String retrieveResponseBody(HttpEntity<HttpHeaders> entity) {
+        String uri = UriComponentsBuilder.fromHttpUrl(BASE_URL + ":" + port + OFFERS).toUriString();
+
+        ResponseEntity<String> response = restTemplate.exchange(uri,
+                HttpMethod.GET,
+                entity,
+                new ParameterizedTypeReference<>() {
+                });
+
+        String remoteOfferDtos = response.getBody();
+        return remoteOfferDtos;
     }
 }
