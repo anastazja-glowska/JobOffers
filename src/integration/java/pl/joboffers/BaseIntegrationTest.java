@@ -31,7 +31,7 @@ public class BaseIntegrationTest {
     public ObjectMapper objectMapper;
 
     @Container
-    public static final MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:4.0.10");
+    public static final MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:6.0");
 
     @DynamicPropertySource
     public static void mongoProperties(DynamicPropertyRegistry registry) {

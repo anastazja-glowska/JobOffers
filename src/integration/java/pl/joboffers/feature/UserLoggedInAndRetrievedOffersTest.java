@@ -1,6 +1,7 @@
 package pl.joboffers.feature;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -9,10 +10,16 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import pl.joboffers.BaseIntegrationTest;
 import pl.joboffers.WireMockJobOffersResponse;
+import pl.joboffers.domain.offer.OfferFacade;
+import pl.joboffers.domain.offer.OfferRepository;
 import pl.joboffers.domain.offer.RemoteOfferFetcher;
+import pl.joboffers.domain.offer.dto.OfferDto;
 import pl.joboffers.domain.offer.dto.RemoteOfferDto;
 
+import java.time.Duration;
 import java.util.List;
+
+import static org.awaitility.Awaitility.await;
 
 @Log4j2
 //@SpringBootTest(properties = {
@@ -25,6 +32,12 @@ class UserLoggedInAndRetrievedOffersTest extends BaseIntegrationTest implements 
     @Autowired
     RemoteOfferFetcher remoteOfferFetcher;
 
+    @Autowired
+    OfferFacade offerFacade;
+
+    @Autowired
+    OfferRepository offerRepository;
+
     @Test
     @DisplayName("Should user register and log in and then he can retrieve offers")
     void should_user_register_and_log_in_and_then_he_can_retrieve_offers(){
@@ -32,23 +45,47 @@ class UserLoggedInAndRetrievedOffersTest extends BaseIntegrationTest implements 
 
 //        step 1: there are no offers in external HTTP server (http://ec2-3-127-218-34.eu-central-1.compute.amazonaws.com:5057/offers)
 
-        //given
+            //given
 
         wireMockServer.stubFor(WireMock.get("/offers")
+                        .inScenario("Offers scenario")
+                        .whenScenarioStateIs(Scenario.STARTED)
                 .willReturn(WireMock.aResponse()
                         .withStatus(HttpStatus.OK.value())
                         .withHeader("Content-Type", "application/json")
-                        .withBody(retrieveZeroOffersJson())));
+                        .withBody(retrieveZeroOffersJson())
+                        ).willSetStateTo("Two Offers"));
+
+        wireMockServer.stubFor(WireMock.get("/offers")
+                .inScenario("Offers scenario")
+                .whenScenarioStateIs("Two Offers")
+                .willReturn(WireMock.aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(retrieveTwoOffersJson())));
 
 
-
-        //when
+            //when
         List<RemoteOfferDto> remoteOfferDtos = remoteOfferFetcher.fetchOffersFromServer();
         log.info("Remote offers " + remoteOfferDtos);
 
-        //then
 
 //        step 2: scheduler ran 1st time and made GET to external server and system added 0 offers to database
+
+        //given
+
+        int initialRepositorySize = offerRepository.findAll().size();
+        log.info("Initial repository size " + initialRepositorySize);
+        //when
+
+        List<OfferDto> offerDtos = offerFacade.fetchAllOffersAndSaveIfNotExists();
+       log.info("Offers " + offerDtos);
+
+        await()
+                    .atMost(Duration.ofSeconds(10))
+                    .pollInterval(Duration.ofSeconds(1))
+                    .until(() -> offerRepository.findAll().size() > initialRepositorySize);
+
 
 
 //        step 3: user tried to get JWT token by requesting POST /token with username=someUser, password=somePassword and system returned UNAUTHORIZED(401)
