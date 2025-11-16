@@ -15,6 +15,7 @@ import pl.joboffers.domain.offer.OfferRepository;
 import pl.joboffers.domain.offer.RemoteOfferFetcher;
 import pl.joboffers.domain.offer.dto.OfferDto;
 import pl.joboffers.domain.offer.dto.RemoteOfferDto;
+import pl.joboffers.infrastructure.offer.scheduler.OffersScheduler;
 
 import java.time.Duration;
 import java.util.List;
@@ -37,6 +38,9 @@ class UserLoggedInAndRetrievedOffersTest extends BaseIntegrationTest implements 
 
     @Autowired
     OfferRepository offerRepository;
+
+//    @Autowired
+//    OffersScheduler offersScheduler;
 
     @Test
     @DisplayName("Should user register and log in and then he can retrieve offers")
@@ -64,6 +68,12 @@ class UserLoggedInAndRetrievedOffersTest extends BaseIntegrationTest implements 
                         .withHeader("Content-Type", "application/json")
                         .withBody(retrieveTwoOffersJson())));
 
+//        wireMockServer.stubFor(WireMock.get("/offers")
+//                .willReturn(WireMock.aResponse()
+//                        .withStatus(HttpStatus.OK.value())
+//                        .withHeader("Content-Type", "application/json")
+//                        .withBody(retrieveZeroOffersJson())));
+
 
             //when
         List<RemoteOfferDto> remoteOfferDtos = remoteOfferFetcher.fetchOffersFromServer();
@@ -73,6 +83,8 @@ class UserLoggedInAndRetrievedOffersTest extends BaseIntegrationTest implements 
 //        step 2: scheduler ran 1st time and made GET to external server and system added 0 offers to database
 
         //given
+
+//        offersScheduler.scheduleOffers();
 
         int initialRepositorySize = offerRepository.findAll().size();
         log.info("Initial repository size " + initialRepositorySize);

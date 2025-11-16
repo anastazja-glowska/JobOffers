@@ -7,6 +7,8 @@ import org.springframework.stereotype.Component;
 import pl.joboffers.domain.offer.OfferFacade;
 import pl.joboffers.domain.offer.dto.OfferDto;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 @Component
@@ -16,9 +18,22 @@ public class OffersScheduler {
 
     private final OfferFacade  offerFacade;
 
-    @Scheduled(cron = "${job.offers.scheduled.offers.occurrence}")
-        public void scheduleOffers(){
+    private static final String ADDED_RETRIEVED_OFFERS_INFO = "New offers {} were added!";
+    private static final String STARTED_INFO = "Started getting offers {}";
+    private static final String FINISHED_INFO = "Finished getting offers {}";
+    private static final SimpleDateFormat dateFormat= new SimpleDateFormat("HH:mm:ss");
+
+
+
+    @Scheduled(fixedDelayString = "${job.offers.scheduled.offers.occurrence.delay}")
+        public List<OfferDto> scheduleOffers(){
+        log.info(STARTED_INFO, dateFormat.format(new Date()));
+
         List<OfferDto> offerDtos = offerFacade.fetchAllOffersAndSaveIfNotExists();
-        log.info("Offers : " + offerDtos);
+
+        log.info(ADDED_RETRIEVED_OFFERS_INFO, offerDtos.size());
+        log.info(FINISHED_INFO, dateFormat.format(new Date()));
+        return  offerDtos;
+
     }
 }

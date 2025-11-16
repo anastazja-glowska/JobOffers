@@ -18,6 +18,7 @@ class OfferFetcher {
         List<RemoteOfferDto> remoteOffers = remoteOfferFetcher.fetchOffersFromServer();
 
         List<RemoteOfferDto> newRemoteOffers = remoteOffers.stream()
+                .filter(remoteOfferDto -> !remoteOfferDto.offerUrl().isEmpty())
                 .filter(remoteOfferDto -> !offerRepository.existsOfferByOfferUrl(remoteOfferDto.offerUrl()))
                 .toList();
 
