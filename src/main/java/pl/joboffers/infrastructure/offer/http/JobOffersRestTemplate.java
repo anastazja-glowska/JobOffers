@@ -45,7 +45,7 @@ public class JobOffersRestTemplate implements RemoteOfferFetcher {
         final HttpEntity<HttpHeaders> entity = new HttpEntity<>(headers);
 
 
-        String remoteOfferDtos = retrieveResponseBody(entity).toString();
+        List<RemoteOfferDto> remoteOfferDtos = retrieveResponseBody(entity);
 
         if(remoteOfferDtos == null || remoteOfferDtos.isEmpty()){
             log.warn("No offers found");
@@ -53,16 +53,7 @@ public class JobOffersRestTemplate implements RemoteOfferFetcher {
         }
 
         log.info("Raw remote offer dtos " + remoteOfferDtos);
-        List<RemoteOfferDto> offerDtos;
-        ObjectMapper objectMapper = new ObjectMapper();
-        try {
-            offerDtos= objectMapper.readValue(remoteOfferDtos, new TypeReference<List<RemoteOfferDto>>() {
-            });
-            return offerDtos;
-        } catch (JsonProcessingException e) {
-            log.error(e.getMessage());
-            throw new JsonMappingResponseException("Error while parsing json!");
-        }
+        return remoteOfferDtos;
 
 
     }
