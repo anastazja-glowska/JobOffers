@@ -25,15 +25,24 @@ public class OffersScheduler {
 
 
 
-    @Scheduled(fixedDelayString = "${job.offers.scheduled.offers.occurrence.delay}")
-        public List<OfferDto> scheduleOffers(){
+//    @Scheduled(fixedDelayString = "${job.offers.scheduled.offers.occurrence.delay}")
+//        public List<OfferDto> scheduleOffers(){
+//
+//        List<OfferDto> offerDtos = offerFacade.fetchAllOffersAndSaveIfNotExists();
+//
+
+//        log.info(FINISHED_INFO, dateFormat.format(new Date()));
+//        return  offerDtos;
+//
+//    }
+
+
+    @Scheduled(fixedDelayString = "${job.offers.scheduled.offers.occurrence}")
+    public List<OfferDto> scheduleOffers(){
         log.info(STARTED_INFO, dateFormat.format(new Date()));
-
         List<OfferDto> offerDtos = offerFacade.fetchAllOffersAndSaveIfNotExists();
-
         log.info(ADDED_RETRIEVED_OFFERS_INFO, offerDtos.size());
         log.info(FINISHED_INFO, dateFormat.format(new Date()));
         return  offerDtos;
-
     }
 }

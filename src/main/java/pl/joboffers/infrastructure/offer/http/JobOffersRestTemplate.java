@@ -25,8 +25,9 @@ import java.util.List;
 
 @RequiredArgsConstructor
 @Log4j2
-@Component
 public class JobOffersRestTemplate implements RemoteOfferFetcher {
+
+
 
 
     private static final String OFFERS = "/offers";
@@ -39,41 +40,92 @@ public class JobOffersRestTemplate implements RemoteOfferFetcher {
 
     @Override
     public List<RemoteOfferDto> fetchOffersFromServer() {
-
-
-        log.info("Started getting offers using http client");
-        HttpHeaders headers = new HttpHeaders();
-//        headers.setContentType(MediaType.APPLICATION_JSON);
+        final HttpHeaders headers = new HttpHeaders();
 //        headers.setAccept(List.of(MediaType.APPLICATION_JSON));
-
-        HttpEntity<HttpHeaders> requestEntity = new HttpEntity<>(headers);
-        try {
-            String urlForService = getUrlForService(OFFERS);
-
-            final String url = UriComponentsBuilder.fromHttpUrl(urlForService).toUriString();
-            ResponseEntity<List<RemoteOfferDto>> response = restTemplate.exchange(url, HttpMethod.GET, requestEntity,
-                    new ParameterizedTypeReference<>() {
-                    });
+        final HttpEntity<HttpHeaders> entity = new HttpEntity<>(headers);
 
 
-            log.info("Response headers: {}", response.getHeaders());
-            log.info("Response body: {}", response.getBody());
+        String remoteOfferDtos = retrieveResponseBody(entity).toString();
 
-            final List<RemoteOfferDto> body = response.getBody();
-            if (body == null) {
-                log.error("Response Body was null");
-                return List.of();
-            }
-
-            return body;
-        } catch (ResourceAccessException e) {
-            log.error("Error while fetching offers using http client: " + e.getMessage());
+        if(remoteOfferDtos == null || remoteOfferDtos.isEmpty()){
+            log.warn("No offers found");
             return List.of();
+        }
+
+        log.info("Raw remote offer dtos " + remoteOfferDtos);
+        List<RemoteOfferDto> offerDtos;
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            offerDtos= objectMapper.readValue(remoteOfferDtos, new TypeReference<List<RemoteOfferDto>>() {
+            });
+            return offerDtos;
+        } catch (JsonProcessingException e) {
+            log.error(e.getMessage());
+            throw new JsonMappingResponseException("Error while parsing json!");
         }
 
 
     }
-    private String getUrlForService(String service) {
-        return uri + ":" + port + service;
+
+    private List<RemoteOfferDto> retrieveResponseBody(HttpEntity<HttpHeaders> entity) {
+        String uriString = UriComponentsBuilder.fromHttpUrl(uri + ":" + port + OFFERS).toUriString();
+
+        ResponseEntity<List<RemoteOfferDto>> response = restTemplate.exchange(uriString,
+                HttpMethod.GET,
+                entity,
+                new ParameterizedTypeReference<>() {
+                });
+
+        List<RemoteOfferDto> remoteOfferDtos = response.getBody();
+        return remoteOfferDtos;
     }
+
+
+//    private static final String OFFERS = "/offers";
+//
+//
+//    private final RestTemplate restTemplate;
+//    private final String uri;
+//    private final int port;
+//
+//
+//    @Override
+//    public List<RemoteOfferDto> fetchOffersFromServer() {
+//
+//
+//        log.info("Started getting offers using http client");
+//        HttpHeaders headers = new HttpHeaders();
+////        headers.setContentType(MediaType.APPLICATION_JSON);
+////        headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+//
+//        HttpEntity<HttpHeaders> requestEntity = new HttpEntity<>(headers);
+//        try {
+//            String urlForService = getUrlForService(OFFERS);
+//
+//            final String url = UriComponentsBuilder.fromHttpUrl(urlForService).toUriString();
+//            ResponseEntity<List<RemoteOfferDto>> response = restTemplate.exchange(url, HttpMethod.GET, requestEntity,
+//                    new ParameterizedTypeReference<>() {
+//                    });
+//
+//
+//            log.info("Response headers: {}", response.getHeaders());
+//            log.info("Response body: {}", response.getBody());
+//
+//            final List<RemoteOfferDto> body = response.getBody();
+//            if (body == null) {
+//                log.error("Response Body was null");
+//                return List.of();
+//            }
+//
+//            return body;
+//        } catch (ResourceAccessException e) {
+//            log.error("Error while fetching offers using http client: " + e.getMessage());
+//            return List.of();
+//        }
+//
+//
+//    }
+//    private String getUrlForService(String service) {
+//        return uri + ":" + port + service;
+//    }
 }

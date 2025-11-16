@@ -23,10 +23,6 @@ import java.util.List;
 import static org.awaitility.Awaitility.await;
 
 @Log4j2
-//@SpringBootTest(properties = {
-//        "job.offers.http.client.url=http://localhost",
-//        "job.offers.http.client.port=8089"
-//})
 class UserLoggedInAndRetrievedOffersTest extends BaseIntegrationTest implements WireMockJobOffersResponse {
 
 
@@ -38,6 +34,8 @@ class UserLoggedInAndRetrievedOffersTest extends BaseIntegrationTest implements 
 
     @Autowired
     OfferRepository offerRepository;
+
+
 
 //    @Autowired
 //    OffersScheduler offersScheduler;
