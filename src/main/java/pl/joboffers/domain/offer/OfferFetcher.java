@@ -1,5 +1,6 @@
 package pl.joboffers.domain.offer;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import pl.joboffers.domain.offer.dto.OfferDto;
@@ -14,7 +15,7 @@ class OfferFetcher {
     private final OfferRepository offerRepository;
     private final RemoteOfferFetcher remoteOfferFetcher;
     
-    List<OfferDto> fetchAllOffersAndSaveAllIfNotExists(){
+    List<OfferDto> fetchAllOffersAndSaveAllIfNotExists() throws JsonProcessingException {
         List<RemoteOfferDto> remoteOffers = remoteOfferFetcher.fetchOffersFromServer();
 
         List<RemoteOfferDto> newRemoteOffers = remoteOffers.stream()

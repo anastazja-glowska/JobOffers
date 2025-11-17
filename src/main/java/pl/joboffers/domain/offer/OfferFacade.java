@@ -1,6 +1,7 @@
 package pl.joboffers.domain.offer;
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import pl.joboffers.domain.offer.dto.OfferDto;
 
@@ -26,7 +27,7 @@ public class OfferFacade {
     }
 
 
-    public List<OfferDto> fetchAllOffersAndSaveIfNotExists(){
+    public List<OfferDto> fetchAllOffersAndSaveIfNotExists() throws JsonProcessingException {
         return offerFetcher.fetchAllOffersAndSaveAllIfNotExists();
     }
 }

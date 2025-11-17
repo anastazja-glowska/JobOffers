@@ -1,5 +1,6 @@
 package pl.joboffers.infrastructure.offer.scheduler;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -38,7 +39,7 @@ public class OffersScheduler {
 
 
     @Scheduled(fixedDelayString = "${job.offers.scheduled.offers.occurrence}")
-    public List<OfferDto> scheduleOffers(){
+    public List<OfferDto> scheduleOffers() throws JsonProcessingException {
         log.info(STARTED_INFO, dateFormat.format(new Date()));
         List<OfferDto> offerDtos = offerFacade.fetchAllOffersAndSaveIfNotExists();
         log.info(ADDED_RETRIEVED_OFFERS_INFO, offerDtos.size());

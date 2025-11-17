@@ -1,5 +1,6 @@
 package pl.joboffers.domain.offer;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,7 +30,7 @@ class OfferFacadeTest {
 
     @Test
     @DisplayName("Should fetch all offers and save all If Not Exists")
-    void should_fetch_All_Offers_And_save_All_If_Not_Exists(){
+    void should_fetch_All_Offers_And_save_All_If_Not_Exists() throws JsonProcessingException {
 
 
         //when
@@ -54,7 +55,7 @@ class OfferFacadeTest {
 
     @Test
     @DisplayName("Should fetch any offer and save any when offer repository contains all offers")
-    void should_fetch_any_offer_and_save_any_when_offer_repository_contains_all_offers(){
+    void should_fetch_any_offer_and_save_any_when_offer_repository_contains_all_offers() throws JsonProcessingException {
         //given
 
         RemoteOfferRetriever remoteOfferRetriever = new RemoteOfferRetriever();
@@ -202,7 +203,7 @@ class OfferFacadeTest {
 
     @Test
     @DisplayName("Should fetch only two offers when one offer already exists in database")
-    void should_fetch_only_two_offers_when_one_offer_already_exists_in_database(){
+    void should_fetch_only_two_offers_when_one_offer_already_exists_in_database() throws JsonProcessingException {
         //given
         Offer offer = new Offer("001", "Title 1", "Company 1", "10 000",
                 "https://www.google1.com");
