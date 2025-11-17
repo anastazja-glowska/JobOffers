@@ -96,7 +96,7 @@ class UserLoggedInAndRetrievedOffersTest extends BaseIntegrationTest implements 
                     .pollInterval(Duration.ofSeconds(1))
                     .until(() -> offerRepository.findAll().size() > initialRepositorySize);
 
-
+        log.info("Size after : "  +  offerRepository.findAll().size());
 
 //        step 3: user tried to get JWT token by requesting POST /token with username=someUser, password=somePassword and system returned UNAUTHORIZED(401)
 //        step 4: user made GET /offers with no jwt token and system returned UNAUTHORIZED(401)

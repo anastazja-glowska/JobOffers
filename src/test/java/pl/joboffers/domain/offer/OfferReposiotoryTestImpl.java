@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -47,8 +48,23 @@ class OfferReposiotoryTestImpl implements OfferRepository {
 
     @Override
     public Offer  save(Offer offer) {
+        if(offersDatabase.values().stream().anyMatch(offer1 -> offer1.getOfferUrl().equals(offer.getOfferUrl()))) {
+            throw new OfferAlreadyExistsException("Offer with this id already exists");
+        }
+
+        if(offer.getId() == null){
+            String id = UUID.randomUUID().toString();
+
+            Offer savedOffer = new Offer(id, offer.getTitle(), offer.getCompany(), offer.getSalary(), offer.getOfferUrl());
+
+            offersDatabase.put(savedOffer.getId(), savedOffer);
+            return savedOffer;
+        }
+
         offersDatabase.put(offer.getId(), offer);
         return offer;
+
+
     }
 
 

@@ -63,7 +63,9 @@ class OfferFacadeTest {
 
         log.info("RemoteOfferDtos size " + remoteOfferDtos.size());
 
-        offerRepository.saveAll(offerList);
+//        offerRepository.saveAll(offerList);
+
+        offerList.stream().forEach(offer -> offerRepository.save(offer));
 
 
         //when
@@ -164,7 +166,7 @@ class OfferFacadeTest {
         Offer offer = new Offer("004", "Title", "Company", "10 000",
                 "https://www.google4.com");
 
-        Offer saved = offerRepository.save(offer);
+        OfferDto saved = offerFacade.saveOffer(offer);
 
         log.info("Saved offer " + saved);
 
@@ -175,7 +177,8 @@ class OfferFacadeTest {
 
         log.info("RemoteOfferDtos size " + remoteOfferDtos.size());
 
-        offerRepository.saveAll(offerList);
+//        offerRepository.saveAll(offerList);
+        offerList.stream().forEach(offer1 -> offerFacade.saveOffer(offer1));
 
         //when
 

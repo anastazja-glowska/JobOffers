@@ -27,9 +27,6 @@ import java.util.List;
 @Log4j2
 public class JobOffersRestTemplate implements RemoteOfferFetcher {
 
-
-
-
     private static final String OFFERS = "/offers";
 
 
