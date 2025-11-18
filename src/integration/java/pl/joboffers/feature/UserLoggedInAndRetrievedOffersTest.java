@@ -30,6 +30,7 @@ import static org.assertj.core.api.Assertions.tuple;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -165,6 +166,39 @@ class UserLoggedInAndRetrievedOffersTest extends BaseIntegrationTest implements 
 //        step 13: there are 2 new offers in external HTTP server
 //        step 14: scheduler ran 3rd time and made GET to external server and system added 2 new offers with ids: 3000 and 4000 to database
 //        step 15: user made GET /offers with header “Authorization: Bearer AAAA.BBBB.CCC” and system returned OK(200) with 4 offers with ids: 1000,2000, 3000 and 4000
+
+        //        step 16: user made POST /offers with header “Authorization: Bearer AAAA.BBBB.CCC” and offer and system returned CREATED(201) with saved offer
+
+        //given && when
+        ResultActions resultActions = mockMvc.perform(post("/offers")
+                .content(
+                        """
+                                {
+                                  "title": "new offer",
+                                  "company": "new company",
+                                  "salary": "7000 - 10000",
+                                  "offerUrl": "https://new.com"
+                                }
+                                """
+                )
+                .contentType(MediaType.APPLICATION_JSON));
+
+        MvcResult mvcResult = resultActions.andExpect(status().isCreated()).andReturn();
+        String createdOfferJson = mvcResult.getResponse().getContentAsString();
+        OfferDto offerDto = objectMapper.readValue(createdOfferJson, OfferDto.class);
+        String offerId = offerDto.id();
+
+        //then
+        assertThat(offerDto).isNotNull();
+        assertThat(offerDto.offerUrl()).isEqualTo("https://new.com");
+        assertThat(offerDto.salary()).isEqualTo("7000 - 10000");
+        assertThat(offerDto.company()).isEqualTo("new company");
+
+
+//        step 17: user made GET /offers with header “Authorization: Bearer AAAA.BBBB.CCC” and system returned OK(200) with 1 offer
+
+
+
 
     }
 }
