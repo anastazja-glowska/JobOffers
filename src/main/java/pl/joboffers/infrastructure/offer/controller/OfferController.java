@@ -1,6 +1,7 @@
 package pl.joboffers.infrastructure.offer.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
@@ -40,7 +41,7 @@ public class OfferController {
     }
 
     @PostMapping
-    public ResponseEntity<OfferDto> createOffer(@RequestBody OfferRequestDto request){
+    public ResponseEntity<OfferDto> createOffer(@RequestBody @Valid OfferRequestDto request){
         Offer toSave = new Offer(request.title(), request.company(), request.salary(), request.offerUrl());
         OfferDto offerDto = offerFacade.saveOffer(toSave);
         return ResponseEntity.status(HttpStatus.CREATED).body(offerDto);

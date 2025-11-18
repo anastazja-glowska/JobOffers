@@ -189,14 +189,31 @@ class UserLoggedInAndRetrievedOffersTest extends BaseIntegrationTest implements 
         String offerId = offerDto.id();
 
         //then
-        assertThat(offerDto).isNotNull();
-        assertThat(offerDto.offerUrl()).isEqualTo("https://new.com");
-        assertThat(offerDto.salary()).isEqualTo("7000 - 10000");
-        assertThat(offerDto.company()).isEqualTo("new company");
+        assertAll(
+                () -> assertThat(offerDto).isNotNull(),
+                () ->     assertThat(offerDto.offerUrl()).isEqualTo("https://new.com"),
+                () -> assertThat(offerDto.salary()).isEqualTo("7000 - 10000"),
+                () ->  assertThat(offerDto.company()).isEqualTo("new company")
+        );
+
 
 
 //        step 17: user made GET /offers with header “Authorization: Bearer AAAA.BBBB.CCC” and system returned OK(200) with 1 offer
 
+        //given && when
+        MvcResult returnedOffer = mockMvc.perform(get("/offers/" + offerId)
+                .contentType(MediaType.APPLICATION_JSON)).andReturn();
+
+        String returnedOfferJson = returnedOffer.getResponse().getContentAsString();
+        OfferDto mappedReturnedOffer = objectMapper.readValue(returnedOfferJson, OfferDto.class);
+
+        //then
+        assertAll(
+                () -> assertThat(mappedReturnedOffer.id()).isEqualTo(offerId),
+                () -> assertThat(mappedReturnedOffer.company()).isEqualTo("new company"),
+                () -> assertThat(mappedReturnedOffer.offerUrl()).isEqualTo("https://new.com"),
+                () -> assertThat(mappedReturnedOffer.title()).isEqualTo("new offer")
+        );
 
 
 
