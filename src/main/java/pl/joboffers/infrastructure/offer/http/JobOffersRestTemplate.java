@@ -57,6 +57,7 @@ public class JobOffersRestTemplate implements RemoteOfferFetcher {
 
     private List<RemoteOfferDto> retrieveResponseBody(HttpEntity<HttpHeaders> entity) throws JsonProcessingException {
         String uriString = UriComponentsBuilder.fromHttpUrl(uri + ":" + port + OFFERS).toUriString();
+//        String uri2 = "http://ec2-3-127-218-34.eu-central-1.compute.amazonaws.com:5057/offers";
 
 //        ResponseEntity<List<RemoteOfferDto>> response = restTemplate.exchange(uriString,
 //                HttpMethod.GET,
