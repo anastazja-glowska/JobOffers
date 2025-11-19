@@ -3,14 +3,17 @@ package pl.joboffers.apivalidationerror;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import pl.joboffers.BaseIntegrationTest;
 import pl.joboffers.infrastructure.apivalidation.ApiValidationErrorsDto;
+import pl.joboffers.infrastructure.offer.controller.error.OfferNotFoundResponse;
 
 
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -97,6 +100,23 @@ public class ApiValidationFailedTest extends BaseIntegrationTest {
                 () -> assertThat(errorsDto.messages()).containsExactlyInAnyOrder("offerUrl must not be empty",
                         "company must not be empty", "offerUrl must not be null"),
                 () -> assertThat(errorsDto).isNotNull()
+        );
+    }
+
+    @Test
+    void should_return_http_status_not_found_when_user_make_get_request_with_not_existing_offer_id() throws Exception {
+        //given && when
+        MvcResult result = mockMvc.perform(get("/offers/9999")
+                .contentType(MediaType.APPLICATION_JSON)).andReturn();
+
+        String jsonResult = result.getResponse().getContentAsString();
+        OfferNotFoundResponse offerNotFoundResponse = objectMapper.readValue(jsonResult, OfferNotFoundResponse.class);
+
+        //then
+        assertAll(
+                () -> assertThat(offerNotFoundResponse).isNotNull(),
+                () -> assertThat(offerNotFoundResponse.message()).isEqualTo("Offer not found for id 9999"),
+                () -> assertThat(offerNotFoundResponse.status()).isEqualTo(HttpStatus.NOT_FOUND)
         );
     }
 
