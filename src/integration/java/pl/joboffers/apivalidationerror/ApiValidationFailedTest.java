@@ -31,7 +31,7 @@ public class ApiValidationFailedTest extends BaseIntegrationTest {
                           "salary": "",
                           "offerUrl": "string"
                         }
-                        """
+                        """.trim()
         ).contentType(MediaType.APPLICATION_JSON));
 
         MvcResult result = resultActions.andExpect(status().isBadRequest()).andReturn();
@@ -53,7 +53,7 @@ public class ApiValidationFailedTest extends BaseIntegrationTest {
         ResultActions performed = mockMvc.perform(post("/offers").content(
                 """
                         {}
-                        """
+                        """.trim()
         ).contentType(MediaType.APPLICATION_JSON));
 
         MvcResult result = performed.andExpect(status().isBadRequest()).andReturn();
@@ -66,10 +66,38 @@ public class ApiValidationFailedTest extends BaseIntegrationTest {
                 () -> assertThat(errorsDto.messages()).containsExactlyInAnyOrder("salary must not be null",
                         "title must not be empty","company must not be null",
                         "title must not be null","offerUrl must not be empty",
-                        "salary must not be empty","offerUrl must not be null","company must not be empty"));
+                        "salary must not be empty","offerUrl must not be null","company must not be empty"),
+                () -> assertThat(errorsDto).isNotNull()
+        );
 
 
 
+    }
+
+    @Test
+    @DisplayName("Should return status bad request and message when user gave empty company and offer url")
+    void should_return_status_bad_request_and_message_when_user_gave_empty_company_and_offer_url() throws Exception {
+        //given && when
+        ResultActions performed = mockMvc.perform(post("/offers").content(
+                """
+                        {
+                          "title": "new offer",
+                          "company": "",
+                          "salary": "7000 - 9000"
+                       }
+                        """.trim()
+        ).contentType(MediaType.APPLICATION_JSON));
+
+        MvcResult result = performed.andExpect(status().isBadRequest()).andReturn();
+        String jsonResult = result.getResponse().getContentAsString();
+        ApiValidationErrorsDto errorsDto = objectMapper.readValue(jsonResult, ApiValidationErrorsDto.class);
+
+        //then
+        assertAll(
+                () -> assertThat(errorsDto.messages()).containsExactlyInAnyOrder("offerUrl must not be empty",
+                        "company must not be empty", "offerUrl must not be null"),
+                () -> assertThat(errorsDto).isNotNull()
+        );
     }
 
 
