@@ -13,6 +13,7 @@ import pl.joboffers.domain.offer.Offer;
 import pl.joboffers.domain.offer.OfferFacade;
 import pl.joboffers.infrastructure.apivalidation.ApiValidationErrorsDto;
 import pl.joboffers.infrastructure.offer.controller.error.OfferAlreadyExistsExceptionResponseDto;
+import pl.joboffers.infrastructure.offer.controller.error.OfferDuplicateKeyExceptionResponseDto;
 import pl.joboffers.infrastructure.offer.controller.error.OfferNotFoundResponseDto;
 
 
@@ -160,6 +161,42 @@ public class ApiValidationFailedTest extends BaseIntegrationTest {
                 () -> assertThat(exceptionResponseDto).isNotNull()
         );
     }
+
+    @Test
+    @DisplayName("Should return offer already exists exception when user try to save offer with existing offer url")
+    void should_return_duplicate_key_exception_exception_when_user_try_to_save_offer_with_existing_offer_url() throws Exception {
+        //given
+        Offer offer = new Offer("Java Junior Developer", "Tech Solutions",
+                "7000 - 9000", "https://new.com");
+
+        offerFacade.saveOffer(offer);
+
+        //when
+        ResultActions performed = mockMvc.perform(post("/offers").content(
+                """
+                        {
+                          "title": "Java Developer",
+                          "company": "Java techs",
+                          "salary": "8000 - 9000",
+                          "offerUrl": "https://new.com"
+                        }
+                        """.trim()
+        ).contentType(MediaType.APPLICATION_JSON));
+        MvcResult result = performed.andExpect(status().isBadRequest()).andReturn();
+        String jsonResult = result.getResponse().getContentAsString();
+        OfferDuplicateKeyExceptionResponseDto exceptionResponseDto = objectMapper
+                .readValue(jsonResult, OfferDuplicateKeyExceptionResponseDto.class);
+
+        log.warn(exceptionResponseDto);
+        //then
+        assertAll(
+                () -> assertThat(exceptionResponseDto.message()).isEqualTo("Offer already exists"),
+                () -> assertThat(exceptionResponseDto.status()).isEqualTo(HttpStatus.BAD_REQUEST),
+                () -> assertThat(exceptionResponseDto).isNotNull()
+        );
+    }
+
+
 
 
 
