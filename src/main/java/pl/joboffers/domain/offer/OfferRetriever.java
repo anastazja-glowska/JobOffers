@@ -17,7 +17,7 @@ class OfferRetriever {
     OfferDto findOfferById(String id) {
 
         Offer offer = offerRepository.findById(id)
-                .orElseThrow(() -> new OfferNotFoundException("Offer not found for id " + id ));
+                .orElseThrow(() -> new OfferNotFoundException(String.format("Offer with offerUrl [%s] already exists!", id )));
 
         return OfferMapper.mapFromOffer(offer);
 

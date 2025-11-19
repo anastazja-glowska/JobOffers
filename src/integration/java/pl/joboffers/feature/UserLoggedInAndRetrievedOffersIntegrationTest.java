@@ -1,6 +1,5 @@
 package pl.joboffers.feature;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
@@ -8,7 +7,6 @@ import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
@@ -20,7 +18,6 @@ import pl.joboffers.domain.offer.OfferRepository;
 import pl.joboffers.domain.offer.RemoteOfferFetcher;
 import pl.joboffers.domain.offer.dto.OfferDto;
 import pl.joboffers.domain.offer.dto.RemoteOfferDto;
-import pl.joboffers.infrastructure.offer.scheduler.OffersScheduler;
 
 import java.time.Duration;
 import java.util.List;
@@ -35,7 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Log4j2
-class UserLoggedInAndRetrievedOffersTest extends BaseIntegrationTest implements WireMockJobOffersResponse {
+class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest implements WireMockJobOffersResponse {
 
 
     @Autowired
@@ -162,7 +159,9 @@ class UserLoggedInAndRetrievedOffersTest extends BaseIntegrationTest implements 
         ));
 
 
-//        step 12: user made GET /offers/1000 and system returned OK(200) with offer
+//        step 12:  user made GET /offers with header “Authorization: Bearer AAAA.BBBB.CCC” and system returned OK(200) with offers
+
+
 //        step 13: there are 2 new offers in external HTTP server
 //        step 14: scheduler ran 3rd time and made GET to external server and system added 2 new offers with ids: 3000 and 4000 to database
 //        step 15: user made GET /offers with header “Authorization: Bearer AAAA.BBBB.CCC” and system returned OK(200) with 4 offers with ids: 1000,2000, 3000 and 4000
@@ -214,6 +213,7 @@ class UserLoggedInAndRetrievedOffersTest extends BaseIntegrationTest implements 
                 () -> assertThat(mappedReturnedOffer.offerUrl()).isEqualTo("https://new.com"),
                 () -> assertThat(mappedReturnedOffer.title()).isEqualTo("new offer")
         );
+
 
 
 

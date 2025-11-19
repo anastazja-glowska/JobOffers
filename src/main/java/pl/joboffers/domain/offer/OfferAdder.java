@@ -14,7 +14,7 @@ class OfferAdder {
 
     OfferDto saveOffer(Offer offer){
         if(offerRetriever.existsOfferByOfferUrl(offer.getOfferUrl())){
-            throw new OfferAlreadyExistsException("Offer already exists");
+            throw new OfferAlreadyExistsException("Offer already exists!");
         }
 
         Offer saved = offerRepository.save(offer);
