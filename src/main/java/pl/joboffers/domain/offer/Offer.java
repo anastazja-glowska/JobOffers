@@ -17,7 +17,7 @@ import org.springframework.data.mongodb.core.mapping.Field;
 @AllArgsConstructor
 @Builder
 @Document(collection = "offers")
-class Offer {
+public class Offer {
 
     @Id
     private String id;
@@ -36,7 +36,7 @@ class Offer {
     private String offerUrl;
 
 
-    Offer(String title, String company, String salary, String offerUrl) {
+    public Offer(String title, String company, String salary, String offerUrl) {
         this.title = title;
         this.company = company;
         this.salary = salary;
