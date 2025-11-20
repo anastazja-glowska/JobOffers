@@ -108,14 +108,16 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
                 .willReturn(WireMock.aResponse()
                         .withStatus(HttpStatus.OK.value())
                         .withHeader("Content-Type", "application/json")
-                        .withBody(retrieveTwoOffersJson())));
+                        .withBody(retrieveTwoOffersJson())
+                ).willSetStateTo("Four Offers"));
 
 
         //        step 9: scheduler ran 2nd time and made GET to external server and system added 2 new offers with ids: 1000 and 2000 to database
 
         //given && when && then
 
-        List<OfferDto> offerDtos = offerFacade.fetchAllOffersAndSaveIfNotExists();
+        List<OfferDto> twoOfferDtosList = offerFacade.fetchAllOffersAndSaveIfNotExists();
+        int sizeWithExpectedTwoOffers = twoOfferDtosList.size();
 
 
         await()
@@ -198,7 +200,31 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
         );
 
 //        step 13: there are 2 new offers in external HTTP server
+        
+        // given && when && then
+        
+        wireMockServer.stubFor(WireMock.get("/offers")
+                .inScenario("Offers scenario")
+                .whenScenarioStateIs("Four Offers")
+                .willReturn(WireMock.aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(retrieveFourOffersJson())));
+        
+        
 //        step 14: scheduler ran 3rd time and made GET to external server and system added 2 new offers with ids: 3000 and 4000 to database
+        
+        // given && when && then
+        List<OfferDto> fourOfferDtosList = offerFacade.fetchAllOffersAndSaveIfNotExists();
+
+        await()
+                .atMost(Duration.ofSeconds(10))
+                .pollInterval(Duration.ofSeconds(1))
+                .until(() -> offerRepository.findAll().size() > sizeWithExpectedTwoOffers
+                        );
+
+        log.info("Size after second fetching : "  +  offerRepository.findAll().size());
+
 //        step 15: user made GET /offers with header “Authorization: Bearer AAAA.BBBB.CCC” and system returned OK(200) with 4 offers with ids: 1000,2000, 3000 and 4000
 
         //        step 16: user made POST /offers with header “Authorization: Bearer AAAA.BBBB.CCC” and offer and system returned CREATED(201) with saved offer
