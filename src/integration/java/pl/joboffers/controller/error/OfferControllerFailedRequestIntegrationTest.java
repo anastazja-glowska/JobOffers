@@ -5,8 +5,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
+import org.testcontainers.containers.MongoDBContainer;
+import org.testcontainers.junit.jupiter.Container;
 import pl.joboffers.BaseIntegrationTest;
 import pl.joboffers.domain.offer.Offer;
 import pl.joboffers.domain.offer.OfferFacade;
@@ -23,6 +27,14 @@ public class OfferControllerFailedRequestIntegrationTest extends BaseIntegration
 
     @Autowired
     OfferFacade offerFacade;
+
+    @Container
+    public static final MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:6.0");
+
+    @DynamicPropertySource
+    public static void mongoProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.data.mongodb.uri", mongoDBContainer::getReplicaSetUrl);
+    }
 
     @Test
     @DisplayName("Should return offer already exists exception when user try to save offer with existing offer url")
@@ -73,7 +85,7 @@ public class OfferControllerFailedRequestIntegrationTest extends BaseIntegration
         //then
         assertAll(
                 () -> assertThat(offerNotFoundResponse).isNotNull(),
-                () -> assertThat(offerNotFoundResponse.message()).isEqualTo("Offer with offerUrl [9999] already exists!"),
+                () -> assertThat(offerNotFoundResponse.message()).isEqualTo("Offer with offerUrl [9999] does not exists!"),
                 () -> assertThat(offerNotFoundResponse.status()).isEqualTo(HttpStatus.NOT_FOUND)
         );
     }

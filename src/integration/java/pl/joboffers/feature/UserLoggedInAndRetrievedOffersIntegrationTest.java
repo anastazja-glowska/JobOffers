@@ -9,8 +9,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
+import org.testcontainers.containers.MongoDBContainer;
+import org.testcontainers.junit.jupiter.Container;
 import pl.joboffers.BaseIntegrationTest;
 import pl.joboffers.WireMockJobOffersResponse;
 import pl.joboffers.domain.offer.OfferFacade;
@@ -41,6 +45,15 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
 
     @Autowired
     OfferRepository offerRepository;
+
+
+    @Container
+    public static final MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:6.0");
+
+    @DynamicPropertySource
+    public static void mongoProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.data.mongodb.uri", mongoDBContainer::getReplicaSetUrl);
+    }
 
 
     @Test
@@ -114,7 +127,7 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
 
         //        step 9: scheduler ran 2nd time and made GET to external server and system added 2 new offers with ids: 1000 and 2000 to database
 
-        //given && when && then
+        //given && when
 
         List<OfferDto> twoOfferDtosList = offerFacade.fetchAllOffersAndSaveIfNotExists();
         int sizeWithExpectedTwoOffers = twoOfferDtosList.size();
@@ -127,6 +140,8 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
 
         log.info("Size after fetching : "  +  offerRepository.findAll().size());
 
+        // then
+        assertThat(twoOfferDtosList).hasSize(2);
 
 
 //        step 10: user made GET /offers with header “Authorization: Bearer AAAA.BBBB.CCC” and system returned OK(200) with 2 offers with ids: 1000 and 2000
@@ -215,8 +230,8 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
         
 //        step 14: scheduler ran 3rd time and made GET to external server and system added 2 new offers with ids: 3000 and 4000 to database
         
-        // given && when && then
-        List<OfferDto> fourOfferDtosList = offerFacade.fetchAllOffersAndSaveIfNotExists();
+        // given && when
+        List<OfferDto> nextTwoOfferDtosList = offerFacade.fetchAllOffersAndSaveIfNotExists();
 
         await()
                 .atMost(Duration.ofSeconds(10))
@@ -225,6 +240,14 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
                         );
 
         log.info("Size after second fetching : "  +  offerRepository.findAll().size());
+
+        //then
+
+        assertAll(
+                () -> assertThat(nextTwoOfferDtosList).hasSize(2),
+                () -> assertThat(offerRepository.findAll()).hasSize(4)
+        );
+
 
 //        step 15: user made GET /offers with header “Authorization: Bearer AAAA.BBBB.CCC” and system returned OK(200) with 4 offers with ids: 1000,2000, 3000 and 4000
 

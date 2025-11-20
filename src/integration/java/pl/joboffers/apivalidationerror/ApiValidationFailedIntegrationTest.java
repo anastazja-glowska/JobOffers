@@ -6,8 +6,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
+import org.testcontainers.containers.MongoDBContainer;
+import org.testcontainers.junit.jupiter.Container;
 import pl.joboffers.BaseIntegrationTest;
 import pl.joboffers.domain.offer.Offer;
 import pl.joboffers.domain.offer.OfferFacade;
@@ -25,6 +29,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Log4j2
 public class ApiValidationFailedIntegrationTest extends BaseIntegrationTest {
 
+    @Container
+    public static final MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:6.0");
+
+    @DynamicPropertySource
+    public static void mongoProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.data.mongodb.uri", mongoDBContainer::getReplicaSetUrl);
+    }
 
 
     @Test
