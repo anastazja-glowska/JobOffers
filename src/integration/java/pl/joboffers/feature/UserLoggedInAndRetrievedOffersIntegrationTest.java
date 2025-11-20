@@ -37,16 +37,10 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
 
 
     @Autowired
-    RemoteOfferFetcher remoteOfferFetcher;
-
-    @Autowired
     OfferFacade offerFacade;
 
     @Autowired
     OfferRepository offerRepository;
-
-    @Autowired
-    OffersScheduler offersScheduler;
 
 
     @Test
@@ -69,21 +63,17 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
 
 
 
-            //when
-//        List<RemoteOfferDto> remoteOfferDtos = remoteOfferFetcher.fetchOffersFromServer();
-//        log.info("Remote offers " + remoteOfferDtos);
-
-
 //        step 2: scheduler ran 1st time and made GET to external server and system added 0 offers to database
 
         //given && when
         List<OfferDto> initialOfferDtoList = offerFacade.fetchAllOffersAndSaveIfNotExists();
 
         //then
-        assertThat(initialOfferDtoList).isEmpty();
+        assertAll(
+                () -> assertThat(initialOfferDtoList).isEmpty(),
+                () -> assertThat(initialOfferDtoList).hasSize(0)
+        );
 
-
-        //when
 
 
 //        step 3: user tried to get JWT token by requesting POST /token with username=someUser, password=somePassword and system returned UNAUTHORIZED(401)
@@ -96,17 +86,15 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
         //given && when
 
         MvcResult result = mockMvc.perform(get("/offers").contentType(MediaType.APPLICATION_JSON)).andReturn();
-        String json = result.getResponse().getContentAsString();
-        List<OfferDto> mappedOffers = objectMapper.readValue(json, new TypeReference<List<OfferDto>>() {
+        String jsonWithZeroOffer = result.getResponse().getContentAsString();
+        List<OfferDto> mappedZeroOffers = objectMapper.readValue(jsonWithZeroOffer, new TypeReference<List<OfferDto>>() {
         });
 
         //then
-        log.info("mappedOffers Size " + mappedOffers.size());
-
 
         assertAll(
-                () -> assertThat(mappedOffers).isEmpty(),
-                () -> assertThat(mappedOffers.size()).isEqualTo(0)
+                () -> assertThat(mappedZeroOffers).isEmpty(),
+                () -> assertThat(mappedZeroOffers.size()).isEqualTo(0)
 
         );
 
@@ -123,33 +111,33 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
                         .withBody(retrieveTwoOffersJson())));
 
 
+        //        step 9: scheduler ran 2nd time and made GET to external server and system added 2 new offers with ids: 1000 and 2000 to database
 
-
-//        step 9: scheduler ran 2nd time and made GET to external server and system added 2 new offers with ids: 1000 and 2000 to database
-
+        //given && when && then
 
         List<OfferDto> offerDtos = offerFacade.fetchAllOffersAndSaveIfNotExists();
-        log.info("Offers " + offerDtos);
+
 
         await()
                 .atMost(Duration.ofSeconds(10))
                 .pollInterval(Duration.ofSeconds(1))
                 .until(() -> offerRepository.findAll().size() > initialOfferDtoList.size());
 
-        log.info("Size after : "  +  offerRepository.findAll().size());
+        log.info("Size after fetching : "  +  offerRepository.findAll().size());
 
 
 
 //        step 10: user made GET /offers with header “Authorization: Bearer AAAA.BBBB.CCC” and system returned OK(200) with 2 offers with ids: 1000 and 2000
 
+        // given && when
 
-        MvcResult results = mockMvc.perform(get("/offers").contentType(MediaType.APPLICATION_JSON)).andReturn();
-        String json2 = results.getResponse().getContentAsString();
-        List<OfferDto> mappedOffers2 = objectMapper.readValue(json2, new TypeReference<List<OfferDto>>() {
+        MvcResult resultsWithTwoOffer = mockMvc.perform(get("/offers").contentType(MediaType.APPLICATION_JSON)).andReturn();
+        String json2 = resultsWithTwoOffer.getResponse().getContentAsString();
+        List<OfferDto> mappedTwoOffers = objectMapper.readValue(json2, new TypeReference<List<OfferDto>>() {
         });
 
         //then
-        log.info("mappedOffers Size " + mappedOffers2.size());
+        log.info("mappedZeroOffers Size " + mappedTwoOffers.size());
         OfferDto expectedIncludedOffer2 = OfferDto.builder()
                 .title("Java Developer")
                 .salary("7000 - 9000")
@@ -158,9 +146,9 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
                 .build();
 
         assertAll(
-                () -> assertThat(mappedOffers2).isNotNull(),
-                () -> assertThat(mappedOffers2.size()).isEqualTo(2),
-                () -> assertThat(mappedOffers2).extracting(OfferDto::company, OfferDto::salary, OfferDto::title, OfferDto::offerUrl)
+                () -> assertThat(mappedTwoOffers).isNotNull(),
+                () -> assertThat(mappedTwoOffers.size()).isEqualTo(2),
+                () -> assertThat(mappedTwoOffers).extracting(OfferDto::company, OfferDto::salary, OfferDto::title, OfferDto::offerUrl)
                         .contains(tuple(expectedIncludedOffer2.company(), expectedIncludedOffer2.salary(),
                                 expectedIncludedOffer2.title(), expectedIncludedOffer2.offerUrl()))
 
@@ -184,7 +172,7 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
         ));
 
 
-//        step 12:  user made GET /offers with header “Authorization: Bearer AAAA.BBBB.CCC” and system returned OK(200) with offers
+//        step 12:  user made GET /offers/1000 with header “Authorization: Bearer AAAA.BBBB.CCC” and system returned OK(200) with offers
 
 
 //        step 13: there are 2 new offers in external HTTP server
