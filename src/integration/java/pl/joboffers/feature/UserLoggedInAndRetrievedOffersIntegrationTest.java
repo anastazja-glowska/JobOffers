@@ -172,8 +172,30 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
         ));
 
 
-//        step 12:  user made GET /offers/1000 with header “Authorization: Bearer AAAA.BBBB.CCC” and system returned OK(200) with offers
+//        step 12:  user made GET /offers/1000 with header “Authorization: Bearer AAAA.BBBB.CCC” and system returned OK(200) with offer
 
+        // given
+        OfferDto savedOfferDto = mappedTwoOffers.get(0);
+        String savedOfferId = savedOfferDto.id();
+
+        //when
+        MvcResult resultWithRetrievedOffer = mockMvc.perform(get("/offers/" + savedOfferId)
+                .contentType(MediaType.APPLICATION_JSON)).andReturn();
+
+        String retrievedOfferJson = resultWithRetrievedOffer.getResponse().getContentAsString();
+
+        OfferDto retrievedOffer = objectMapper.readValue(retrievedOfferJson, OfferDto.class);
+
+        // then
+
+        assertAll(
+                () -> assertThat(retrievedOffer).isNotNull(),
+                () -> assertThat(resultWithRetrievedOffer.getResponse().getStatus()).isEqualTo(HttpStatus.OK.value()),
+                () -> assertThat(retrievedOffer.id()).isEqualTo(savedOfferId),
+                () -> assertThat(retrievedOffer.title()).isEqualTo("Java Developer"),
+                () -> assertThat(retrievedOffer.salary()).isEqualTo("7000 - 9000"),
+                () -> assertThat(retrievedOffer.company()).isEqualTo("Tech Solutions")
+        );
 
 //        step 13: there are 2 new offers in external HTTP server
 //        step 14: scheduler ran 3rd time and made GET to external server and system added 2 new offers with ids: 3000 and 4000 to database
