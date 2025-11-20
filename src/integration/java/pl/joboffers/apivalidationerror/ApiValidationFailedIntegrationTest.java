@@ -56,6 +56,7 @@ public class ApiValidationFailedIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
+    @DisplayName("Should return status bad request and message when user does not provide any offer")
     void should_return_status_bad_request_and_message_when_user_does_not_provide_any_offer() throws Exception {
 
         //given && when
@@ -76,7 +77,8 @@ public class ApiValidationFailedIntegrationTest extends BaseIntegrationTest {
                         "title must not be empty","company must not be null",
                         "title must not be null","offerUrl must not be empty",
                         "salary must not be empty","offerUrl must not be null","company must not be empty"),
-                () -> assertThat(errorsDto).isNotNull()
+                () -> assertThat(errorsDto).isNotNull(),
+                () -> assertThat(errorsDto.status()).isEqualTo(HttpStatus.BAD_REQUEST)
         );
 
 
@@ -105,7 +107,8 @@ public class ApiValidationFailedIntegrationTest extends BaseIntegrationTest {
         assertAll(
                 () -> assertThat(errorsDto.messages()).containsExactlyInAnyOrder("offerUrl must not be empty",
                         "company must not be empty", "offerUrl must not be null"),
-                () -> assertThat(errorsDto).isNotNull()
+                () -> assertThat(errorsDto).isNotNull(),
+                () -> assertThat(errorsDto.status()).isEqualTo(HttpStatus.BAD_REQUEST)
         );
     }
 

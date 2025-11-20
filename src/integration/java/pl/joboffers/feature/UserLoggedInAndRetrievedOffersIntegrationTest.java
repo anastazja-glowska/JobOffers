@@ -18,6 +18,7 @@ import pl.joboffers.domain.offer.OfferRepository;
 import pl.joboffers.domain.offer.RemoteOfferFetcher;
 import pl.joboffers.domain.offer.dto.OfferDto;
 import pl.joboffers.domain.offer.dto.RemoteOfferDto;
+import pl.joboffers.infrastructure.offer.scheduler.OffersScheduler;
 
 import java.time.Duration;
 import java.util.List;
@@ -44,10 +45,9 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
     @Autowired
     OfferRepository offerRepository;
 
+    @Autowired
+    OffersScheduler offersScheduler;
 
-
-//    @Autowired
-//    OffersScheduler offersScheduler;
 
     @Test
     @DisplayName("Should user register and log in and then he can retrieve offers")
@@ -56,7 +56,7 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
 
 //        step 1: there are no offers in external HTTP server (http://ec2-3-127-218-34.eu-central-1.compute.amazonaws.com:5057/offers)
 
-            //given
+            //given && when && then
 
         wireMockServer.stubFor(WireMock.get("/offers")
                         .inScenario("Offers scenario")
@@ -67,45 +67,24 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
                         .withBody(retrieveZeroOffersJson())
                         ).willSetStateTo("Two Offers"));
 
-        wireMockServer.stubFor(WireMock.get("/offers")
-                .inScenario("Offers scenario")
-                .whenScenarioStateIs("Two Offers")
-                .willReturn(WireMock.aResponse()
-                        .withStatus(HttpStatus.OK.value())
-                        .withHeader("Content-Type", "application/json")
-                        .withBody(retrieveTwoOffersJson())));
-
-//        wireMockServer.stubFor(WireMock.get("/offers")
-//                .willReturn(WireMock.aResponse()
-//                        .withStatus(HttpStatus.OK.value())
-//                        .withHeader("Content-Type", "application/json")
-//                        .withBody(retrieveZeroOffersJson())));
 
 
             //when
-        List<RemoteOfferDto> remoteOfferDtos = remoteOfferFetcher.fetchOffersFromServer();
-        log.info("Remote offers " + remoteOfferDtos);
+//        List<RemoteOfferDto> remoteOfferDtos = remoteOfferFetcher.fetchOffersFromServer();
+//        log.info("Remote offers " + remoteOfferDtos);
 
 
 //        step 2: scheduler ran 1st time and made GET to external server and system added 0 offers to database
 
-        //given
+        //given && when
+        List<OfferDto> initialOfferDtoList = offerFacade.fetchAllOffersAndSaveIfNotExists();
 
-//        offersScheduler.scheduleOffers();
+        //then
+        assertThat(initialOfferDtoList).isEmpty();
 
-        int initialRepositorySize = offerRepository.findAll().size();
-        log.info("Initial repository size " + initialRepositorySize);
+
         //when
 
-        List<OfferDto> offerDtos = offerFacade.fetchAllOffersAndSaveIfNotExists();
-       log.info("Offers " + offerDtos);
-
-        await()
-                    .atMost(Duration.ofSeconds(10))
-                    .pollInterval(Duration.ofSeconds(1))
-                    .until(() -> offerRepository.findAll().size() > initialRepositorySize);
-
-        log.info("Size after : "  +  offerRepository.findAll().size());
 
 //        step 3: user tried to get JWT token by requesting POST /token with username=someUser, password=somePassword and system returned UNAUTHORIZED(401)
 //        step 4: user made GET /offers with no jwt token and system returned UNAUTHORIZED(401)
@@ -123,7 +102,55 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
 
         //then
         log.info("mappedOffers Size " + mappedOffers.size());
-        OfferDto expectedIncludedOffer = OfferDto.builder()
+
+
+        assertAll(
+                () -> assertThat(mappedOffers).isEmpty(),
+                () -> assertThat(mappedOffers.size()).isEqualTo(0)
+
+        );
+
+//        step 8: there are 2 new offers in external HTTP server
+
+        // given && when && then
+
+        wireMockServer.stubFor(WireMock.get("/offers")
+                .inScenario("Offers scenario")
+                .whenScenarioStateIs("Two Offers")
+                .willReturn(WireMock.aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(retrieveTwoOffersJson())));
+
+
+
+
+//        step 9: scheduler ran 2nd time and made GET to external server and system added 2 new offers with ids: 1000 and 2000 to database
+
+
+        List<OfferDto> offerDtos = offerFacade.fetchAllOffersAndSaveIfNotExists();
+        log.info("Offers " + offerDtos);
+
+        await()
+                .atMost(Duration.ofSeconds(10))
+                .pollInterval(Duration.ofSeconds(1))
+                .until(() -> offerRepository.findAll().size() > initialOfferDtoList.size());
+
+        log.info("Size after : "  +  offerRepository.findAll().size());
+
+
+
+//        step 10: user made GET /offers with header “Authorization: Bearer AAAA.BBBB.CCC” and system returned OK(200) with 2 offers with ids: 1000 and 2000
+
+
+        MvcResult results = mockMvc.perform(get("/offers").contentType(MediaType.APPLICATION_JSON)).andReturn();
+        String json2 = results.getResponse().getContentAsString();
+        List<OfferDto> mappedOffers2 = objectMapper.readValue(json2, new TypeReference<List<OfferDto>>() {
+        });
+
+        //then
+        log.info("mappedOffers Size " + mappedOffers2.size());
+        OfferDto expectedIncludedOffer2 = OfferDto.builder()
                 .title("Java Developer")
                 .salary("7000 - 9000")
                 .company("Tech Solutions")
@@ -131,20 +158,18 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
                 .build();
 
         assertAll(
-                () -> assertThat(mappedOffers).isNotNull(),
-                () -> assertThat(mappedOffers.size()).isEqualTo(4),
-                () -> assertThat(mappedOffers).extracting(OfferDto::company, OfferDto::salary, OfferDto::title, OfferDto::offerUrl)
-                        .contains(tuple(expectedIncludedOffer.company(), expectedIncludedOffer.salary(), expectedIncludedOffer.title(), expectedIncludedOffer.offerUrl()))
+                () -> assertThat(mappedOffers2).isNotNull(),
+                () -> assertThat(mappedOffers2.size()).isEqualTo(2),
+                () -> assertThat(mappedOffers2).extracting(OfferDto::company, OfferDto::salary, OfferDto::title, OfferDto::offerUrl)
+                        .contains(tuple(expectedIncludedOffer2.company(), expectedIncludedOffer2.salary(),
+                                expectedIncludedOffer2.title(), expectedIncludedOffer2.offerUrl()))
 
 
 
 
         );
 
-//        step 8: there are 2 new offers in external HTTP server
-//        step 9: scheduler ran 2nd time and made GET to external server and system added 2 new offers with ids: 1000 and 2000 to database
-//        step 10: user made GET /offers with header “Authorization: Bearer AAAA.BBBB.CCC” and system returned OK(200) with 2 offers with ids: 1000 and 2000
-//        step 11: user made GET /offers/9999 and system returned NOT_FOUND(404) with message “Offer with id 9999 not found”
+//        step 11: user made GET /offers/9999 and system returned NOT_FOUND(404) with message Offer with offerUrl [9999] does not exists!
         
         //given && when && then
 
@@ -152,7 +177,7 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
         offerAction.andExpect(status().isNotFound()).andExpect(content().json(
                 """
                                {
-                               "message" : "Offer not found for id 9999",
+                               "message" : "Offer with offerUrl [9999] does not exists!",
                                "status" : "NOT_FOUND"
                                }
                                """.trim()

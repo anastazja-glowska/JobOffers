@@ -34,7 +34,7 @@ public class OfferController {
         return ResponseEntity.ok(allOffers);
     }
 
-    @GetMapping("{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<OfferDto> fetchOffer(@PathVariable String id){
         OfferDto offerById = offerFacade.findOfferById(id);
         return ResponseEntity.ok(offerById);
