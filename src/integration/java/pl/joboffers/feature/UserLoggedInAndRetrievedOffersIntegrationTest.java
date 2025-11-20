@@ -133,7 +133,8 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
 
         // given && when
 
-        MvcResult resultsWithTwoOffer = mockMvc.perform(get("/offers").contentType(MediaType.APPLICATION_JSON)).andReturn();
+        MvcResult resultsWithTwoOffer = mockMvc.perform(get("/offers")
+                .contentType(MediaType.APPLICATION_JSON)).andReturn();
         String json2 = resultsWithTwoOffer.getResponse().getContentAsString();
         List<OfferDto> mappedTwoOffers = objectMapper.readValue(json2, new TypeReference<List<OfferDto>>() {
         });
@@ -227,6 +228,34 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
 
 //        step 15: user made GET /offers with header “Authorization: Bearer AAAA.BBBB.CCC” and system returned OK(200) with 4 offers with ids: 1000,2000, 3000 and 4000
 
+        // given && when
+
+        MvcResult resultWithExpectedFourOffers = mockMvc.perform(get("/offers")
+                .contentType(MediaType.APPLICATION_JSON)).andReturn();
+        String expectedFourOffersJson = resultWithExpectedFourOffers.getResponse().getContentAsString();
+        List<OfferDto> mappedExpectedFourOffers = objectMapper.readValue(expectedFourOffersJson, new TypeReference<List<OfferDto>>() {
+        });
+
+        log.info("mappedExpectedFourOffers Size " + mappedExpectedFourOffers.size());
+
+        //then
+        OfferDto expectedIncluededOfferDto = OfferDto.builder()
+                .offerUrl("https://nextgenapps.com/jobs/java-software-engineer")
+                .company("NextGen Apps")
+                .title("Java Software Engineer")
+                .salary("7000 - 9000")
+                .build();
+
+        assertAll(
+                () -> assertThat(mappedExpectedFourOffers)
+                        .extracting(OfferDto::company, OfferDto::salary, OfferDto::title, OfferDto::offerUrl)
+                        .contains(tuple(expectedIncluededOfferDto.company(), expectedIncluededOfferDto.salary(),
+                                expectedIncluededOfferDto.title(), expectedIncluededOfferDto.offerUrl())),
+                () -> assertThat(mappedExpectedFourOffers).hasSize(4),
+                () -> assertThat(mappedExpectedFourOffers).isNotNull()
+        );
+
+
         //        step 16: user made POST /offers with header “Authorization: Bearer AAAA.BBBB.CCC” and offer and system returned CREATED(201) with saved offer
 
         //given && when
@@ -258,7 +287,7 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
 
 
 
-//        step 17: user made GET /offers with header “Authorization: Bearer AAAA.BBBB.CCC” and system returned OK(200) with 1 offer
+//        step 17: user made GET /offers/newOfferId with header “Authorization: Bearer AAAA.BBBB.CCC” and system returned OK(200) with 1 offer
 
         //given && when
         MvcResult returnedOffer = mockMvc.perform(get("/offers/" + offerId)
