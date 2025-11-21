@@ -56,5 +56,28 @@ class OfferFetcherRestTemplateErrorsIntegrationTest {
         );
 
 
+
+    }
+
+    @Test
+    @DisplayName("Should return null jobs when external server fault empty response")
+    void should_return_null_jobs_when_external_server_fault_empty_response(){
+
+        // given
+
+        wireMockServer.stubFor(WireMock.get("/offers")
+                .willReturn(WireMock.aResponse()
+                        .withStatus(HttpStatus.OK.value()
+                        ).withHeader(CONTENT_TYPE_HEADER_KEY, CONTENT_TYPE_VALUE)
+                        .withFault(Fault.EMPTY_RESPONSE)));
+
+        //when
+        Throwable throwable = catchThrowable(() -> remoteOfferFetcher.fetchOffersFromServer());
+
+        //then
+        assertAll(
+                () -> assertThat(throwable).isInstanceOf(ResourceAccessException.class),
+                () -> assertThat(throwable.getMessage()).isEqualTo("500 INTERNAL_SERVER_ERROR")
+        );
     }
 }
