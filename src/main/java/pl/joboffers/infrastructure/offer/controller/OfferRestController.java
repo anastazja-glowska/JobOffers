@@ -1,6 +1,5 @@
 package pl.joboffers.infrastructure.offer.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -23,7 +22,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Log4j2
 @RequestMapping("/offers")
-public class OfferController {
+public class OfferRestController {
 
     private final OfferFacade offerFacade;
 
