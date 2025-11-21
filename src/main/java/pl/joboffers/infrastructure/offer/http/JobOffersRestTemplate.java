@@ -48,7 +48,7 @@ public class JobOffersRestTemplate implements RemoteOfferFetcher {
 
             if(remoteOfferDtos == null || remoteOfferDtos.isEmpty()){
                 log.warn("No offers found");
-                return List.of();
+                throw new NoContentException("204 NO_CONTENT");
             }
 
             log.info("Raw remote offer dtos " + remoteOfferDtos);
