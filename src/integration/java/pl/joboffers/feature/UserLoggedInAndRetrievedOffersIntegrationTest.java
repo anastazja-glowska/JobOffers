@@ -102,7 +102,7 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
                         """
                                 {
                                   "message" : "Bad Credentials",
-                                  "status" : "UNAUTHORISED"
+                                  "status" : "UNAUTHORIZED"
                                 }
                                 """.trim()
                 ));

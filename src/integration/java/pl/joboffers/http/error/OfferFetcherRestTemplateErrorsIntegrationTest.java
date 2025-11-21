@@ -231,28 +231,4 @@ class OfferFetcherRestTemplateErrorsIntegrationTest implements WireMockJobOffers
     }
 
 
-    @Test
-    @DisplayName("Should throw no content exception when any offers are returned")
-    void should_throw_no_content_exception_when_any_offers_are_returned(){
-
-        //given
-
-        wireMockServer.stubFor(WireMock.get("/offers")
-                .willReturn(WireMock.aResponse()
-                        .withStatus(HttpStatus.OK.value())
-                        .withHeader(CONTENT_TYPE_HEADER_KEY, CONTENT_TYPE_VALUE)
-                        .withBody(retrieveZeroOffersJson())));
-
-        //when
-
-        Throwable throwable = catchThrowable(() -> remoteOfferFetcher.fetchOffersFromServer());
-
-        // then
-        assertAll(
-                () -> assertThat(throwable).isInstanceOf(NoContentException.class),
-                () -> assertThat(throwable.getMessage()).isEqualTo("204 NO_CONTENT")
-        );
-
-
-    }
 }

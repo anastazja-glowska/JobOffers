@@ -2,6 +2,7 @@ package pl.joboffers.domain.register;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import pl.joboffers.domain.register.dto.UserDto;
 import pl.joboffers.domain.register.dto.UserRegisterResponseDto;
 
@@ -94,7 +95,7 @@ class LoginAndRegisterFacadeTest {
         Throwable result = catchThrowable(() -> loginAndRegisterFacade.findByUserName("email@gmail.com"));
 
         //then
-        assertThat(result).isInstanceOf(UserNotFoundException.class);
+        assertThat(result).isInstanceOf(UsernameNotFoundException.class);
         assertThat(result.getMessage()).isEqualTo("User not found");
     }
 
