@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.server.ResponseStatusException;
 import pl.joboffers.WireMockJobOffersResponse;
 import pl.joboffers.domain.offer.RemoteOfferFetcher;
 import pl.joboffers.domain.offer.dto.RemoteOfferDto;
@@ -180,6 +181,28 @@ class OfferFetcherRestTemplateErrorsIntegrationTest implements WireMockJobOffers
                 () -> assertThat(throwable.getMessage()).isEqualTo("204 NO_CONTENT")
         );
 
+
+    }
+
+
+    @Test
+    @DisplayName("Should throw not found 404 exception when external server return not found status")
+    void should_throw_not_found_404_exception_when_external_server_return_not_found_status(){
+
+        //given
+        wireMockServer.stubFor(WireMock.get("/offers")
+                .willReturn(WireMock.aResponse()
+                        .withStatus(HttpStatus.NOT_FOUND.value())
+                        .withHeader(CONTENT_TYPE_HEADER_KEY, CONTENT_TYPE_VALUE)));
+
+        //when
+
+        Throwable throwable = catchThrowable(() -> remoteOfferFetcher.fetchOffersFromServer());
+
+        // then
+        assertAll(
+                () -> assertThat(throwable).isInstanceOf(ResponseStatusException.class)
+        );
 
     }
 }
