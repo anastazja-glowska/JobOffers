@@ -80,4 +80,27 @@ class OfferFetcherRestTemplateErrorsIntegrationTest {
                 () -> assertThat(throwable.getMessage()).isEqualTo("500 INTERNAL_SERVER_ERROR")
         );
     }
+
+
+    @Test
+    @DisplayName("Should return null jobs when external server malformed response chunk")
+    void should_return_null_jobs_when_external_server_malformed_response_chunk(){
+        //given
+
+        wireMockServer.stubFor(WireMock.get("/offers")
+                .willReturn(WireMock.aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader(CONTENT_TYPE_HEADER_KEY, CONTENT_TYPE_VALUE)
+                        .withFault(Fault.MALFORMED_RESPONSE_CHUNK)));
+
+        //when
+
+        Throwable throwable = catchThrowable(() -> remoteOfferFetcher.fetchOffersFromServer());
+
+        // then
+        assertAll(
+                () -> assertThat(throwable).isInstanceOf(ResourceAccessException.class),
+                () -> assertThat(throwable.getMessage()).isEqualTo("500 INTERNAL_SERVER_ERROR")
+        );
+    }
 }
