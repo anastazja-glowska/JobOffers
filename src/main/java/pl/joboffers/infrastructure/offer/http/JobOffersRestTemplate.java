@@ -37,6 +37,8 @@ public class JobOffersRestTemplate implements RemoteOfferFetcher {
 
     @Override
     public List<RemoteOfferDto> fetchOffersFromServer() throws JsonProcessingException {
+
+
         final HttpHeaders headers = new HttpHeaders();
         headers.setAccept(List.of(MediaType.APPLICATION_JSON));
         final HttpEntity<HttpHeaders> entity = new HttpEntity<>(headers);
@@ -55,17 +57,12 @@ public class JobOffersRestTemplate implements RemoteOfferFetcher {
 
     }
 
-    private List<RemoteOfferDto> retrieveResponseBody(HttpEntity<HttpHeaders> entity) throws JsonProcessingException {
-        String uriString = UriComponentsBuilder.fromHttpUrl(uri + ":" + port + OFFERS).toUriString();
-//        String uri2 = "http://ec2-3-127-218-34.eu-central-1.compute.amazonaws.com:5057/offers";
 
-//        ResponseEntity<List<RemoteOfferDto>> response = restTemplate.exchange(uriString,
-//                HttpMethod.GET,
-//                entity,
-//                new ParameterizedTypeReference<>() {
-//                });
-//
-//        List<RemoteOfferDto> remoteOfferDtos = response.getBody();
+
+    private List<RemoteOfferDto> retrieveResponseBody(HttpEntity<HttpHeaders> entity) throws JsonProcessingException {
+
+
+        String uriString = UriComponentsBuilder.fromHttpUrl(uri + ":" + port + OFFERS).toUriString();
         ObjectMapper objectMapper = new ObjectMapper();
 
         ResponseEntity<String> response = restTemplate.exchange(uriString,
@@ -74,6 +71,7 @@ public class JobOffersRestTemplate implements RemoteOfferFetcher {
                 String.class);
 
         String body = response.getBody();
+
         List<RemoteOfferDto> offers = objectMapper.readValue(body, new TypeReference<>() {});
 
         return offers;
