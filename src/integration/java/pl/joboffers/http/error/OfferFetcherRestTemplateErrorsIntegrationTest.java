@@ -8,8 +8,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.ResourceAccessException;
+import pl.joboffers.WireMockJobOffersResponse;
 import pl.joboffers.domain.offer.RemoteOfferFetcher;
 import pl.joboffers.domain.offer.dto.RemoteOfferDto;
+import pl.joboffers.infrastructure.offer.http.NoContentException;
 
 import java.util.List;
 
@@ -18,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
-class OfferFetcherRestTemplateErrorsIntegrationTest {
+class OfferFetcherRestTemplateErrorsIntegrationTest implements WireMockJobOffersResponse {
 
 
     public static final String CONTENT_TYPE_HEADER_KEY = "Content-Type";
@@ -124,6 +126,32 @@ class OfferFetcherRestTemplateErrorsIntegrationTest {
         assertAll(
                 () -> assertThat(throwable).isInstanceOf(ResourceAccessException.class),
                 () -> assertThat(throwable.getMessage()).isEqualTo("500 INTERNAL_SERVER_ERROR")
+        );
+
+
+    }
+
+
+    @Test
+    @DisplayName("Should throw exception no content when status is 204 no content")
+    void should_throw_exception_no_content_when_status_is_204_no_content(){
+
+        //given
+
+        wireMockServer.stubFor(WireMock.get("/offers")
+                .willReturn(WireMock.aResponse()
+                        .withStatus(HttpStatus.NO_CONTENT.value())
+                        .withHeader(CONTENT_TYPE_HEADER_KEY, CONTENT_TYPE_VALUE)
+                        .withBody(retrieveFourOffersJson())));
+
+        //when
+
+        Throwable throwable = catchThrowable(() -> remoteOfferFetcher.fetchOffersFromServer());
+
+        // then
+        assertAll(
+                () -> assertThat(throwable).isInstanceOf(NoContentException.class),
+                () -> assertThat(throwable.getMessage()).isEqualTo("204 NO_CONTENT")
         );
 
 
