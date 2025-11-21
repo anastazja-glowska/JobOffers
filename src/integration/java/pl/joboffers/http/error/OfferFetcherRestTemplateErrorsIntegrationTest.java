@@ -131,6 +131,32 @@ class OfferFetcherRestTemplateErrorsIntegrationTest implements WireMockJobOffers
 
     }
 
+    @Test
+    @DisplayName("Should throw internal server error when delay is 5000 ms and client has 2000 ms read timeout")
+    void should_throw_internal_server_error_when_delay_is_5000_ms_and_client_has_2000_ms_read_timeout(){
+
+        //given
+        wireMockServer.stubFor(WireMock.get("/offers")
+                .willReturn(WireMock.aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader(CONTENT_TYPE_HEADER_KEY, CONTENT_TYPE_VALUE)
+                        .withBody(retrieveFourOffersJson())
+                        .withFixedDelay(5000)
+                ));
+
+        //when
+
+        Throwable throwable = catchThrowable(() -> remoteOfferFetcher.fetchOffersFromServer());
+
+        // then
+        assertAll(
+                () -> assertThat(throwable).isInstanceOf(ResourceAccessException.class),
+                () -> assertThat(throwable.getMessage()).isEqualTo("500 INTERNAL_SERVER_ERROR")
+        );
+
+
+    }
+
 
     @Test
     @DisplayName("Should throw exception no content when status is 204 no content")
