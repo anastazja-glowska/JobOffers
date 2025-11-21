@@ -205,4 +205,28 @@ class OfferFetcherRestTemplateErrorsIntegrationTest implements WireMockJobOffers
         );
 
     }
+
+
+    @Test
+    @DisplayName("Should throw 401 exception when external server return unauthorized status")
+    void should_throw_401_exception_when_external_server_return_unauthorized_status(){
+
+        //given
+        wireMockServer.stubFor(WireMock.get("/offers")
+                .willReturn(WireMock.aResponse()
+                        .withStatus(HttpStatus.UNAUTHORIZED.value())
+                        .withHeader(CONTENT_TYPE_HEADER_KEY, CONTENT_TYPE_VALUE))
+        );
+
+        //when
+
+        Throwable throwable = catchThrowable(() -> remoteOfferFetcher.fetchOffersFromServer());
+
+        // then
+        assertAll(
+                () -> assertThat(throwable).isInstanceOf(ResponseStatusException.class)
+        );
+
+
+    }
 }
