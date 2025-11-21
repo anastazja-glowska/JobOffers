@@ -43,16 +43,25 @@ public class JobOffersRestTemplate implements RemoteOfferFetcher {
         headers.setAccept(List.of(MediaType.APPLICATION_JSON));
         final HttpEntity<HttpHeaders> entity = new HttpEntity<>(headers);
 
+        try{
+            List<RemoteOfferDto> remoteOfferDtos = retrieveResponseBody(entity);
 
-        List<RemoteOfferDto> remoteOfferDtos = retrieveResponseBody(entity);
+            if(remoteOfferDtos == null || remoteOfferDtos.isEmpty()){
+                log.warn("No offers found");
+                return List.of();
+            }
 
-        if(remoteOfferDtos == null || remoteOfferDtos.isEmpty()){
-            log.warn("No offers found");
-            return List.of();
+            log.info("Raw remote offer dtos " + remoteOfferDtos);
+            return remoteOfferDtos;
+
+
+
+        } catch (ResourceAccessException e) {
+            log.error("Resource access exception was thrown");
+            throw new ResourceAccessException("500 INTERNAL_SERVER_ERROR");
         }
 
-        log.info("Raw remote offer dtos " + remoteOfferDtos);
-        return remoteOfferDtos;
+
 
 
     }
@@ -70,7 +79,23 @@ public class JobOffersRestTemplate implements RemoteOfferFetcher {
                 entity,
                 String.class);
 
+        if(response.getStatusCode() == HttpStatus.NO_CONTENT){
+            throw new NoContentException("204 NO_CONTENT");
+        }
+
+        if(response.getStatusCode() == HttpStatus.NOT_FOUND){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "404 NOT_FOUND");
+        }
+
+        if(response.getStatusCode() == HttpStatus.UNAUTHORIZED){
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "401 UNAUTHORIZED");
+        }
+
         String body = response.getBody();
+
+        if(body == null || body.isEmpty()){
+            throw new NoContentException("204 NO_CONTENT");
+        }
 
         List<RemoteOfferDto> offers = objectMapper.readValue(body, new TypeReference<>() {});
 
