@@ -103,4 +103,29 @@ class OfferFetcherRestTemplateErrorsIntegrationTest {
                 () -> assertThat(throwable.getMessage()).isEqualTo("500 INTERNAL_SERVER_ERROR")
         );
     }
+
+
+    @Test
+    @DisplayName("Should return null offers when external server fault random data then close")
+    void should_return_null_offers_when_external_server_fault_random_data_then_close(){
+        // given
+        wireMockServer.stubFor(WireMock.get("/offers")
+                .willReturn(WireMock.aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader(CONTENT_TYPE_HEADER_KEY, CONTENT_TYPE_VALUE)
+                        .withFault(Fault.RANDOM_DATA_THEN_CLOSE)
+                ));
+
+        //when
+
+        Throwable throwable = catchThrowable(() -> remoteOfferFetcher.fetchOffersFromServer());
+
+        // then
+        assertAll(
+                () -> assertThat(throwable).isInstanceOf(ResourceAccessException.class),
+                () -> assertThat(throwable.getMessage()).isEqualTo("500 INTERNAL_SERVER_ERROR")
+        );
+
+
+    }
 }
