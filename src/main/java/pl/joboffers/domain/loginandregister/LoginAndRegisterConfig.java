@@ -1,4 +1,4 @@
-package pl.joboffers.domain.register;
+package pl.joboffers.domain.loginandregister;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

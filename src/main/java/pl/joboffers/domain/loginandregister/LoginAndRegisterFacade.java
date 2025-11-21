@@ -1,9 +1,10 @@
-package pl.joboffers.domain.register;
+package pl.joboffers.domain.loginandregister;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import pl.joboffers.domain.register.dto.UserDto;
-import pl.joboffers.domain.register.dto.UserRegisterResponseDto;
+import pl.joboffers.domain.loginandregister.dto.UserDto;
+import pl.joboffers.domain.loginandregister.dto.UserRegisterRequestDto;
+import pl.joboffers.domain.loginandregister.dto.UserRegisterResponseDto;
 
 @RequiredArgsConstructor
 @Component
@@ -16,7 +17,7 @@ public class LoginAndRegisterFacade {
         return userRetriever.findByUserName(userName);
     }
 
-    public UserRegisterResponseDto register(User user) {
+    public UserRegisterResponseDto register(UserRegisterRequestDto user) {
         return userAdder.register(user);
     }
 }

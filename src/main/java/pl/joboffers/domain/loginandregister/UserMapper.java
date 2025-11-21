@@ -1,7 +1,7 @@
-package pl.joboffers.domain.register;
+package pl.joboffers.domain.loginandregister;
 
-import pl.joboffers.domain.register.dto.UserDto;
-import pl.joboffers.domain.register.dto.UserRegisterResponseDto;
+import pl.joboffers.domain.loginandregister.dto.UserDto;
+import pl.joboffers.domain.loginandregister.dto.UserRegisterResponseDto;
 
 class UserMapper {
 

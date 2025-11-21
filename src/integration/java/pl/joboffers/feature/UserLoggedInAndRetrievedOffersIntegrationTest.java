@@ -91,11 +91,15 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
 
 //        step 3: user tried to get JWT token by requesting POST /token with username=someUser, password=somePassword and system returned UNAUTHORIZED(401)
 
+        // given && when
 
         ResultActions failedUserRegister = mockMvc.perform(post("/token")
                 .content(
                         retrieveSomeUserWithSomePassword()
                 ).contentType(MediaType.APPLICATION_JSON));
+
+        //then
+
 
         failedUserRegister.andExpect(status().isUnauthorized())
                 .andExpect(content().json(
@@ -106,8 +110,30 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
                                 }
                                 """.trim()
                 ));
+
+
 //        step 4: user made GET /offers with no jwt token and system returned UNAUTHORIZED(401)
-//        step 5: user made POST /register with username=someUser, password=somePassword and system registered user with status OK(200)
+
+
+        //given && when
+        ResultActions failedGetOffersRequest = mockMvc.perform(get("/offers")
+                .contentType(MediaType.APPLICATION_JSON));
+
+        //then
+        failedGetOffersRequest.andExpect(status().isUnauthorized());
+
+//        step 5: user made POST /register with username=someUser, password=somePassword and system registered user with status CREATED(201)
+
+
+        ResultActions registeredAction = mockMvc.perform(post("/register")
+                .content(retrieveSomeUserWithSomePassword())
+                .contentType(MediaType.APPLICATION_JSON));
+
+        //then
+
+        registeredAction.andExpect(status().isCreated());
+
+
 //        step 6: user tried to get JWT token by requesting POST /token with username=someUser, password=somePassword and system returned OK(200) and jwttoken=AAAA.BBBB.CCC
 //        step 7: user made GET /offers with header “Authorization: Bearer AAAA.BBBB.CCC” and system returned OK(200) with 0 offers
 

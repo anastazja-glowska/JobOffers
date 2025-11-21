@@ -1,10 +1,11 @@
-package pl.joboffers.domain.register;
+package pl.joboffers.domain.loginandregister;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import pl.joboffers.domain.register.dto.UserDto;
-import pl.joboffers.domain.register.dto.UserRegisterResponseDto;
+import pl.joboffers.domain.loginandregister.dto.UserDto;
+import pl.joboffers.domain.loginandregister.dto.UserRegisterRequestDto;
+import pl.joboffers.domain.loginandregister.dto.UserRegisterResponseDto;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
@@ -53,8 +54,13 @@ class LoginAndRegisterFacadeTest {
 
         userRepository.save(user);
 
+        UserRegisterRequestDto build = UserRegisterRequestDto.builder()
+                .username("email@gmail.com")
+                .password("12345678")
+                .build();
+
         //when
-        Throwable result = catchThrowable(() -> loginAndRegisterFacade.register(user));
+        Throwable result = catchThrowable(() -> loginAndRegisterFacade.register(build));
 
         //then
         assertThat(result).isInstanceOf(UserAlreadyExistsException.class);
@@ -66,10 +72,13 @@ class LoginAndRegisterFacadeTest {
     void should_register_user(){
         //given
 
-        User user = new User("001", "email@gmail.com", "12345678");
+        UserRegisterRequestDto build = UserRegisterRequestDto.builder()
+                .username("email@gmail.com")
+                .password("12345678")
+                .build();
 
         //when
-        UserRegisterResponseDto result = loginAndRegisterFacade.register(user);
+        UserRegisterResponseDto result = loginAndRegisterFacade.register(build);
 
         //then
 

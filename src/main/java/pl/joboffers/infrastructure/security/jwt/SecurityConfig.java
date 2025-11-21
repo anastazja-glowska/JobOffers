@@ -11,7 +11,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.SecurityFilterChain;
-import pl.joboffers.domain.register.LoginAndRegisterFacade;
+import pl.joboffers.domain.loginandregister.LoginAndRegisterFacade;
 
 @Configuration
 @RequiredArgsConstructor

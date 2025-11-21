@@ -1,12 +1,9 @@
-package pl.joboffers.domain.register;
+package pl.joboffers.domain.loginandregister;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import pl.joboffers.domain.register.dto.UserDto;
-
-import java.util.List;
+import pl.joboffers.domain.loginandregister.dto.UserDto;
 
 @RequiredArgsConstructor
 @Service

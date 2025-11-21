@@ -5,9 +5,8 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import pl.joboffers.domain.register.LoginAndRegisterFacade;
-import pl.joboffers.domain.register.dto.UserDto;
+import pl.joboffers.domain.loginandregister.LoginAndRegisterFacade;
+import pl.joboffers.domain.loginandregister.dto.UserDto;
 
 import java.util.Collections;
 
