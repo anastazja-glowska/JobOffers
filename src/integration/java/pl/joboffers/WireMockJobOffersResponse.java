@@ -75,6 +75,15 @@ public interface WireMockJobOffersResponse {
         return "[]";
     }
 
+    default String retrieveSomeUserWithSomePassword(){
+        return """
+                                 {
+                                "username" : "someUser",
+                                "password" : "somePassword"
+                                }
+                                """.trim();
+    }
+
 
 
 }

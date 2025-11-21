@@ -90,6 +90,22 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
 
 
 //        step 3: user tried to get JWT token by requesting POST /token with username=someUser, password=somePassword and system returned UNAUTHORIZED(401)
+
+
+        ResultActions failedUserRegister = mockMvc.perform(post("/token")
+                .content(
+                        retrieveSomeUserWithSomePassword()
+                ).contentType(MediaType.APPLICATION_JSON));
+
+        failedUserRegister.andExpect(status().isUnauthorized())
+                .andExpect(content().json(
+                        """
+                                {
+                                  "message" : "Bad Credentials",
+                                  "status" : "UNAUTHORISED"
+                                }
+                                """.trim()
+                ));
 //        step 4: user made GET /offers with no jwt token and system returned UNAUTHORIZED(401)
 //        step 5: user made POST /register with username=someUser, password=somePassword and system registered user with status OK(200)
 //        step 6: user tried to get JWT token by requesting POST /token with username=someUser, password=somePassword and system returned OK(200) and jwttoken=AAAA.BBBB.CCC
