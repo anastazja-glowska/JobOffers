@@ -1,11 +1,14 @@
 package pl.joboffers.domain.loginandregister;
 
 
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import lombok.ToString;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -17,9 +20,11 @@ import java.util.List;
 
 
 
-@Setter
+
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(of = "id")
+@ToString
 @Builder
 @Document
 class User implements UserDetails {
@@ -34,6 +39,7 @@ class User implements UserDetails {
     private String email;
 
 
+    @Size(min = 6)
     private String password;
 
     User(String email, String password) {

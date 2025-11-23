@@ -5,8 +5,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -28,6 +26,7 @@ import java.util.List;
 public class JobOffersRestTemplate implements RemoteOfferFetcher {
 
     private static final String OFFERS = "/offers";
+    private static final String OFFERS_NOT_FOUND = "Offers on remote server not found";
 
 
     private final RestTemplate restTemplate;
@@ -47,11 +46,11 @@ public class JobOffersRestTemplate implements RemoteOfferFetcher {
             List<RemoteOfferDto> remoteOfferDtos = retrieveResponseBody(entity);
 
             if(remoteOfferDtos == null || remoteOfferDtos.isEmpty()){
-                log.warn("No offers found");
+                log.warn(OFFERS_NOT_FOUND);
                 return List.of();
             }
 
-            log.info("Raw remote offer dtos " + remoteOfferDtos);
+            log.info("Retrieved {} offers", remoteOfferDtos.size());
             return remoteOfferDtos;
 
 
@@ -79,17 +78,7 @@ public class JobOffersRestTemplate implements RemoteOfferFetcher {
                 entity,
                 String.class);
 
-        if(response.getStatusCode() == HttpStatus.NO_CONTENT){
-            throw new NoContentException("204 NO_CONTENT");
-        }
-
-        if(response.getStatusCode() == HttpStatus.NOT_FOUND){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "404 NOT_FOUND");
-        }
-
-        if(response.getStatusCode() == HttpStatus.UNAUTHORIZED){
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "401 UNAUTHORIZED");
-        }
+        validateResponse(response);
 
         String body = response.getBody();
 
@@ -102,52 +91,14 @@ public class JobOffersRestTemplate implements RemoteOfferFetcher {
         return offers;
     }
 
+    private void validateResponse(ResponseEntity<String> response){
+        HttpStatus status = (HttpStatus) response.getStatusCode();
+        switch (status){
+            case NO_CONTENT -> throw new NoContentException("204 NO_CONTENT");
+            case NOT_FOUND -> throw new ResponseStatusException(HttpStatus.NOT_FOUND, "404 NOT_FOUND");
+            case UNAUTHORIZED -> throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "401 UNAUTHORIZED");
+            default -> { }
+        }
+    }
 
-//    private static final String OFFERS = "/offers";
-//
-//
-//    private final RestTemplate restTemplate;
-//    private final String uri;
-//    private final int port;
-//
-//
-//    @Override
-//    public List<RemoteOfferDto> fetchOffersFromServer() {
-//
-//
-//        log.info("Started getting offers using http client");
-//        HttpHeaders headers = new HttpHeaders();
-////        headers.setContentType(MediaType.APPLICATION_JSON);
-////        headers.setAccept(List.of(MediaType.APPLICATION_JSON));
-//
-//        HttpEntity<HttpHeaders> requestEntity = new HttpEntity<>(headers);
-//        try {
-//            String urlForService = getUrlForService(OFFERS);
-//
-//            final String url = UriComponentsBuilder.fromHttpUrl(urlForService).toUriString();
-//            ResponseEntity<List<RemoteOfferDto>> response = restTemplate.exchange(url, HttpMethod.GET, requestEntity,
-//                    new ParameterizedTypeReference<>() {
-//                    });
-//
-//
-//            log.info("Response headers: {}", response.getHeaders());
-//            log.info("Response body: {}", response.getBody());
-//
-//            final List<RemoteOfferDto> body = response.getBody();
-//            if (body == null) {
-//                log.error("Response Body was null");
-//                return List.of();
-//            }
-//
-//            return body;
-//        } catch (ResourceAccessException e) {
-//            log.error("Error while fetching offers using http client: " + e.getMessage());
-//            return List.of();
-//        }
-//
-//
-//    }
-//    private String getUrlForService(String service) {
-//        return uri + ":" + port + service;
-//    }
 }

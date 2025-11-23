@@ -9,11 +9,13 @@ import pl.joboffers.domain.loginandregister.dto.UserDto;
 @Service
 class UserRetriever {
 
+    private static final String USER_NOT_FOUND = "User not found";
+
     private final UserRepository userRepository;
 
     UserDto findByUserName(String email) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new BadCredentialsException("Username not found"));
+                .orElseThrow(() -> new BadCredentialsException(USER_NOT_FOUND));
         return UserMapper.mapFromUser(user);
 
     }

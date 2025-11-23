@@ -3,6 +3,8 @@ package pl.joboffers.infrastructure.offer.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,13 +31,14 @@ public class OfferRestController {
     @GetMapping
     public ResponseEntity<List<OfferDto>> fetchOffers() {
         List<OfferDto> allOffers = offerFacade.findAllOffers();
-        log.info("All retrieved offers : " + allOffers);
+        log.info("Retrieved {} offers", allOffers.size());
         return ResponseEntity.ok(allOffers);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<OfferDto> fetchOffer(@PathVariable String id){
         OfferDto offerById = offerFacade.findOfferById(id);
+        log.debug("Fetching offer with id {}", id);
         return ResponseEntity.ok(offerById);
     }
 
