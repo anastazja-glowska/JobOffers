@@ -123,6 +123,72 @@ public class ApiValidationFailedIntegrationTest extends BaseIntegrationTest {
         );
     }
 
+    @Test
+    @DisplayName("Should return status bad request 400 and validation message when user provide empty password and invalid email")
+    void should_return_status_bad_request_400_and_validation_message_when_user_provide_empty_password_and_invalid_email() throws Exception {
+
+        //given && when
+
+        ResultActions performedInvalidCredentials = mockMvc.perform(post("/register")
+                .content("""
+                        {
+                        "username" : "email",
+                        "password" : ""
+                        }
+                        """.trim()
+                ).contentType(MediaType.APPLICATION_JSON));
+
+        MvcResult result = performedInvalidCredentials.andExpect(status().isBadRequest()).andReturn();
+        String badRequestResponseJson = result.getResponse().getContentAsString();
+        ApiValidationErrorsDto errors = objectMapper.readValue(badRequestResponseJson, ApiValidationErrorsDto.class);
+
+        //then
+
+        assertAll(
+                () -> assertThat(errors.messages()).containsExactlyInAnyOrder(
+                        "password must have min 6 length size",
+                        "email must have correct format", "email must not be empty"),
+                () -> assertThat(errors.status()).isEqualTo(HttpStatus.BAD_REQUEST),
+                () -> assertThat(errors).isNotNull()
+
+        );
+
+
+    }
+
+
+    @Test
+    @DisplayName("Should return status bad request 400 and validation message when user provide any email and invalid password")
+    void should_return_status_bad_request_400_and_validation_message_when_user_provide_any_email_and_invalid_password() throws Exception {
+
+        //given && when
+
+        ResultActions performedInvalidCredentials = mockMvc.perform(post("/register")
+                .content("""
+                        {
+                        "password" : "1234"
+                        }
+                        """.trim()
+                ).contentType(MediaType.APPLICATION_JSON));
+
+        MvcResult result = performedInvalidCredentials.andExpect(status().isBadRequest()).andReturn();
+        String badRequestResponseJson = result.getResponse().getContentAsString();
+        ApiValidationErrorsDto errors = objectMapper.readValue(badRequestResponseJson, ApiValidationErrorsDto.class);
+
+        //then
+
+        assertAll(
+                () -> assertThat(errors.messages()).containsExactlyInAnyOrder(
+                        "password must have min 6 length size",
+                        "email must not be empty", "email must not be null"),
+                () -> assertThat(errors.status()).isEqualTo(HttpStatus.BAD_REQUEST),
+                () -> assertThat(errors).isNotNull()
+
+        );
+
+
+    }
+
 
 
 

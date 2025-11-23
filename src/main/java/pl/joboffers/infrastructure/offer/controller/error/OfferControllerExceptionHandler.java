@@ -10,8 +10,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import pl.joboffers.domain.offer.OfferAlreadyExistsException;
 import pl.joboffers.domain.offer.OfferNotFoundException;
+import pl.joboffers.infrastructure.offer.controller.OfferRestController;
 
-@ControllerAdvice
+@ControllerAdvice(basePackageClasses = OfferRestController.class)
 @Log4j2
 public class OfferControllerExceptionHandler {
 

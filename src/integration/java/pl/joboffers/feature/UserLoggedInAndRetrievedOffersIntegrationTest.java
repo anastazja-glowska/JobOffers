@@ -17,15 +17,18 @@ import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import pl.joboffers.BaseIntegrationTest;
 import pl.joboffers.WireMockJobOffersResponse;
+import pl.joboffers.domain.loginandregister.dto.UserRegisterResponseDto;
 import pl.joboffers.domain.offer.OfferFacade;
 import pl.joboffers.domain.offer.OfferRepository;
 import pl.joboffers.domain.offer.RemoteOfferFetcher;
 import pl.joboffers.domain.offer.dto.OfferDto;
 import pl.joboffers.domain.offer.dto.RemoteOfferDto;
+import pl.joboffers.infrastructure.loginandregister.controller.dto.JwtResponseDto;
 import pl.joboffers.infrastructure.offer.scheduler.OffersScheduler;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -39,6 +42,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Log4j2
 class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest implements WireMockJobOffersResponse {
 
+    private static final String OFFERS_ENDPOINT = "/offers";
+    private static final String TOKEN_ENDPOINT = "/token";
+    private static final String REGISTER_ENDPOINT = "/register";
 
     @Autowired
     OfferFacade offerFacade;
@@ -65,7 +71,7 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
 
             //given && when && then
 
-        wireMockServer.stubFor(WireMock.get("/offers")
+        wireMockServer.stubFor(WireMock.get(OFFERS_ENDPOINT)
                         .inScenario("Offers scenario")
                         .whenScenarioStateIs(Scenario.STARTED)
                 .willReturn(WireMock.aResponse()
@@ -90,15 +96,88 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
 
 
 //        step 3: user tried to get JWT token by requesting POST /token with username=someUser, password=somePassword and system returned UNAUTHORIZED(401)
-//        step 4: user made GET /offers with no jwt token and system returned UNAUTHORIZED(401)
-//        step 5: user made POST /register with username=someUser, password=somePassword and system registered user with status OK(200)
+
+        // given && when
+
+        ResultActions failedUserRegister = mockMvc.perform(post(TOKEN_ENDPOINT)
+                .content(
+                        retrieveSomeUserWithSomePassword()
+                ).contentType(MediaType.APPLICATION_JSON));
+
+        //then
+
+
+        failedUserRegister.andExpect(status().isUnauthorized())
+                .andExpect(content().json(
+                        """
+                                {
+                                  "message" : "Bad Credentials",
+                                  "status" : "UNAUTHORIZED"
+                                }
+                                """.trim()
+                ));
+
+
+//        step 4: user made GET /offers with no jwt token and system returned FORBIDDEN(403)
+
+
+        //given && when
+        ResultActions failedGetOffersRequest = mockMvc.perform(get(OFFERS_ENDPOINT)
+                .contentType(MediaType.APPLICATION_JSON));
+
+        //then
+        failedGetOffersRequest.andExpect(status().isForbidden());
+
+//        step 5: user made POST /register with username=someUser, password=somePassword and system registered user with status CREATED(201)
+
+
+        ResultActions registeredAction = mockMvc.perform(post(REGISTER_ENDPOINT)
+                .content(retrieveSomeUserWithSomePassword())
+                .contentType(MediaType.APPLICATION_JSON));
+
+        //then
+
+        registeredAction.andExpect(status().isCreated());
+        String registeredUserJson = registeredAction.andReturn().getResponse().getContentAsString();
+        UserRegisterResponseDto registeredUser = objectMapper
+                .readValue(registeredUserJson, UserRegisterResponseDto.class);
+
+        assertAll(
+                () -> assertThat(registeredUser.isRegistered()).isTrue(),
+                () -> assertThat(registeredUser.id()).isNotNull(),
+                () -> assertThat(registeredUser.email()).isEqualTo("email@gmail.com")
+        );
+
+
 //        step 6: user tried to get JWT token by requesting POST /token with username=someUser, password=somePassword and system returned OK(200) and jwttoken=AAAA.BBBB.CCC
+
+        //given && when
+
+        ResultActions successLoginRequest = mockMvc.perform(post(TOKEN_ENDPOINT)
+                .content(retrieveSomeUserWithSomePassword())
+                .contentType(MediaType.APPLICATION_JSON));
+
+        //then
+
+        MvcResult successLoginResult = successLoginRequest.andExpect(status().isOk()).andReturn();
+        String successLoginJson = successLoginResult.getResponse().getContentAsString();
+        JwtResponseDto jwtResponseDto = objectMapper.readValue(successLoginJson, JwtResponseDto.class);
+        String token = jwtResponseDto.token();
+
+        assertAll(
+                () -> assertThat(jwtResponseDto.username()).isEqualTo("email@gmail.com"),
+                () -> assertThat(token).matches(Pattern.compile("^([A-Za-z0-9-_=]+\\.)+([A-Za-z0-9-_=])+\\.?$"))
+        );
+
+
 //        step 7: user made GET /offers with header “Authorization: Bearer AAAA.BBBB.CCC” and system returned OK(200) with 0 offers
 
 
         //given && when
 
-        MvcResult result = mockMvc.perform(get("/offers").contentType(MediaType.APPLICATION_JSON)).andReturn();
+        MvcResult result = mockMvc.perform(get(OFFERS_ENDPOINT)
+                        .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)).andReturn();
         String jsonWithZeroOffer = result.getResponse().getContentAsString();
         List<OfferDto> mappedZeroOffers = objectMapper.readValue(jsonWithZeroOffer, new TypeReference<List<OfferDto>>() {
         });
@@ -115,7 +194,7 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
 
         // given && when && then
 
-        wireMockServer.stubFor(WireMock.get("/offers")
+        wireMockServer.stubFor(WireMock.get(OFFERS_ENDPOINT)
                 .inScenario("Offers scenario")
                 .whenScenarioStateIs("Two Offers")
                 .willReturn(WireMock.aResponse()
@@ -138,7 +217,7 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
                 .pollInterval(Duration.ofSeconds(1))
                 .until(() -> offerRepository.findAll().size() > initialOfferDtoList.size());
 
-        log.info("Size after fetching : "  +  offerRepository.findAll().size());
+        log.info("Size after second fetching from external server : "  +  offerRepository.findAll().size());
 
         // then
         assertThat(twoOfferDtosList).hasSize(2);
@@ -148,14 +227,17 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
 
         // given && when
 
-        MvcResult resultsWithTwoOffer = mockMvc.perform(get("/offers")
+        MvcResult resultsWithTwoOffer = mockMvc.perform(get(OFFERS_ENDPOINT)
+                .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)).andReturn();
+
         String json2 = resultsWithTwoOffer.getResponse().getContentAsString();
         List<OfferDto> mappedTwoOffers = objectMapper.readValue(json2, new TypeReference<List<OfferDto>>() {
         });
 
         //then
-        log.info("mappedZeroOffers Size " + mappedTwoOffers.size());
+        log.info("mappedTwoOffers Size " + mappedTwoOffers.size());
+
         OfferDto expectedIncludedOffer2 = OfferDto.builder()
                 .title("Java Developer")
                 .salary("7000 - 9000")
@@ -179,7 +261,9 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
         
         //given && when && then
 
-        ResultActions offerAction = mockMvc.perform(get("/offers/9999").contentType(MediaType.APPLICATION_JSON));
+        ResultActions offerAction = mockMvc.perform(get("/offers/9999")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON));
         offerAction.andExpect(status().isNotFound()).andExpect(content().json(
                 """
                                {
@@ -197,7 +281,8 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
         String savedOfferId = savedOfferDto.id();
 
         //when
-        MvcResult resultWithRetrievedOffer = mockMvc.perform(get("/offers/" + savedOfferId)
+        MvcResult resultWithRetrievedOffer = mockMvc.perform(get(OFFERS_ENDPOINT + "/" + savedOfferId)
+                .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)).andReturn();
 
         String retrievedOfferJson = resultWithRetrievedOffer.getResponse().getContentAsString();
@@ -219,7 +304,7 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
         
         // given && when && then
         
-        wireMockServer.stubFor(WireMock.get("/offers")
+        wireMockServer.stubFor(WireMock.get(OFFERS_ENDPOINT)
                 .inScenario("Offers scenario")
                 .whenScenarioStateIs("Four Offers")
                 .willReturn(WireMock.aResponse()
@@ -239,7 +324,7 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
                 .until(() -> offerRepository.findAll().size() > sizeWithExpectedTwoOffers
                         );
 
-        log.info("Size after second fetching : "  +  offerRepository.findAll().size());
+        log.info("Size after 3th fetching : "  +  offerRepository.findAll().size());
 
         //then
 
@@ -253,7 +338,8 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
 
         // given && when
 
-        MvcResult resultWithExpectedFourOffers = mockMvc.perform(get("/offers")
+        MvcResult resultWithExpectedFourOffers = mockMvc.perform(get(OFFERS_ENDPOINT)
+                .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)).andReturn();
         String expectedFourOffersJson = resultWithExpectedFourOffers.getResponse().getContentAsString();
         List<OfferDto> mappedExpectedFourOffers = objectMapper.readValue(expectedFourOffersJson, new TypeReference<List<OfferDto>>() {
@@ -282,7 +368,9 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
         //        step 16: user made POST /offers with header “Authorization: Bearer AAAA.BBBB.CCC” and offer and system returned CREATED(201) with saved offer
 
         //given && when
-        ResultActions resultActions = mockMvc.perform(post("/offers")
+        ResultActions resultActions = mockMvc.perform(post(OFFERS_ENDPOINT)
+                .header("Authorization", "Bearer " + token)
+
                 .content(
                         """
                                 {
@@ -305,7 +393,8 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
                 () -> assertThat(offerDto).isNotNull(),
                 () ->     assertThat(offerDto.offerUrl()).isEqualTo("https://new.com"),
                 () -> assertThat(offerDto.salary()).isEqualTo("7000 - 10000"),
-                () ->  assertThat(offerDto.company()).isEqualTo("new company")
+                () ->  assertThat(offerDto.company()).isEqualTo("new company"),
+                () -> assertThat(offerId).isNotNull()
         );
 
 
@@ -313,7 +402,9 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
 //        step 17: user made GET /offers/newOfferId with header “Authorization: Bearer AAAA.BBBB.CCC” and system returned OK(200) with 1 offer
 
         //given && when
-        MvcResult returnedOffer = mockMvc.perform(get("/offers/" + offerId)
+        MvcResult returnedOffer = mockMvc.perform(get(OFFERS_ENDPOINT + "/" + offerId)
+                .header("Authorization", "Bearer " + token)
+
                 .contentType(MediaType.APPLICATION_JSON)).andReturn();
 
         String returnedOfferJson = returnedOffer.getResponse().getContentAsString();

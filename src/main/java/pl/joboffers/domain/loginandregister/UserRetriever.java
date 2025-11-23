@@ -1,10 +1,9 @@
-package pl.joboffers.domain.register;
+package pl.joboffers.domain.loginandregister;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
-import pl.joboffers.domain.register.dto.UserDto;
-
-import java.util.List;
+import pl.joboffers.domain.loginandregister.dto.UserDto;
 
 @RequiredArgsConstructor
 @Service
@@ -14,7 +13,7 @@ class UserRetriever {
 
     UserDto findByUserName(String email) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
+                .orElseThrow(() -> new BadCredentialsException("Username not found"));
         return UserMapper.mapFromUser(user);
 
     }
