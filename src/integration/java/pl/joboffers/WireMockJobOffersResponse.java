@@ -78,7 +78,7 @@ public interface WireMockJobOffersResponse {
     default String retrieveSomeUserWithSomePassword(){
         return """
                                  {
-                                "username" : "someUser",
+                                "username" : "email@gmail.com",
                                 "password" : "somePassword"
                                 }
                                 """.trim();

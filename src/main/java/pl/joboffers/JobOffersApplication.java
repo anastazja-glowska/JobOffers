@@ -6,9 +6,10 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import pl.joboffers.infrastructure.offer.http.JobOffersRestTemplateTimeoutConfig;
+import pl.joboffers.infrastructure.security.jwt.JwtConfigurationProperties;
 
 @SpringBootApplication
-@EnableConfigurationProperties(JobOffersRestTemplateTimeoutConfig.class)
+@EnableConfigurationProperties({JobOffersRestTemplateTimeoutConfig.class, JwtConfigurationProperties.class})
 @EnableScheduling
 public class JobOffersApplication {
 

@@ -42,6 +42,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Log4j2
 class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest implements WireMockJobOffersResponse {
 
+    private static final String OFFERS_ENDPOINT = "/offers";
+    private static final String TOKEN_ENDPOINT = "/token";
+    private static final String REGISTER_ENDPOINT = "/register";
 
     @Autowired
     OfferFacade offerFacade;
@@ -68,7 +71,7 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
 
             //given && when && then
 
-        wireMockServer.stubFor(WireMock.get("/offers")
+        wireMockServer.stubFor(WireMock.get(OFFERS_ENDPOINT)
                         .inScenario("Offers scenario")
                         .whenScenarioStateIs(Scenario.STARTED)
                 .willReturn(WireMock.aResponse()
@@ -96,7 +99,7 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
 
         // given && when
 
-        ResultActions failedUserRegister = mockMvc.perform(post("/token")
+        ResultActions failedUserRegister = mockMvc.perform(post(TOKEN_ENDPOINT)
                 .content(
                         retrieveSomeUserWithSomePassword()
                 ).contentType(MediaType.APPLICATION_JSON));
@@ -119,7 +122,7 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
 
 
         //given && when
-        ResultActions failedGetOffersRequest = mockMvc.perform(get("/offers")
+        ResultActions failedGetOffersRequest = mockMvc.perform(get(OFFERS_ENDPOINT)
                 .contentType(MediaType.APPLICATION_JSON));
 
         //then
@@ -128,7 +131,7 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
 //        step 5: user made POST /register with username=someUser, password=somePassword and system registered user with status CREATED(201)
 
 
-        ResultActions registeredAction = mockMvc.perform(post("/register")
+        ResultActions registeredAction = mockMvc.perform(post(REGISTER_ENDPOINT)
                 .content(retrieveSomeUserWithSomePassword())
                 .contentType(MediaType.APPLICATION_JSON));
 
@@ -142,7 +145,7 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
         assertAll(
                 () -> assertThat(registeredUser.isRegistered()).isTrue(),
                 () -> assertThat(registeredUser.id()).isNotNull(),
-                () -> assertThat(registeredUser.email()).isEqualTo("someUser")
+                () -> assertThat(registeredUser.email()).isEqualTo("email@gmail.com")
         );
 
 
@@ -150,7 +153,7 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
 
         //given && when
 
-        ResultActions successLoginRequest = mockMvc.perform(post("/token")
+        ResultActions successLoginRequest = mockMvc.perform(post(TOKEN_ENDPOINT)
                 .content(retrieveSomeUserWithSomePassword())
                 .contentType(MediaType.APPLICATION_JSON));
 
@@ -162,7 +165,7 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
         String token = jwtResponseDto.token();
 
         assertAll(
-                () -> assertThat(jwtResponseDto.username()).isEqualTo("someUser"),
+                () -> assertThat(jwtResponseDto.username()).isEqualTo("email@gmail.com"),
                 () -> assertThat(token).matches(Pattern.compile("^([A-Za-z0-9-_=]+\\.)+([A-Za-z0-9-_=])+\\.?$"))
         );
 
@@ -172,7 +175,7 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
 
         //given && when
 
-        MvcResult result = mockMvc.perform(get("/offers")
+        MvcResult result = mockMvc.perform(get(OFFERS_ENDPOINT)
                         .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)).andReturn();
         String jsonWithZeroOffer = result.getResponse().getContentAsString();
@@ -191,7 +194,7 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
 
         // given && when && then
 
-        wireMockServer.stubFor(WireMock.get("/offers")
+        wireMockServer.stubFor(WireMock.get(OFFERS_ENDPOINT)
                 .inScenario("Offers scenario")
                 .whenScenarioStateIs("Two Offers")
                 .willReturn(WireMock.aResponse()
@@ -214,7 +217,7 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
                 .pollInterval(Duration.ofSeconds(1))
                 .until(() -> offerRepository.findAll().size() > initialOfferDtoList.size());
 
-        log.info("Size after fetching : "  +  offerRepository.findAll().size());
+        log.info("Size after second fetching from external server : "  +  offerRepository.findAll().size());
 
         // then
         assertThat(twoOfferDtosList).hasSize(2);
@@ -224,15 +227,17 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
 
         // given && when
 
-        MvcResult resultsWithTwoOffer = mockMvc.perform(get("/offers")
+        MvcResult resultsWithTwoOffer = mockMvc.perform(get(OFFERS_ENDPOINT)
                 .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)).andReturn();
+
         String json2 = resultsWithTwoOffer.getResponse().getContentAsString();
         List<OfferDto> mappedTwoOffers = objectMapper.readValue(json2, new TypeReference<List<OfferDto>>() {
         });
 
         //then
-        log.info("mappedZeroOffers Size " + mappedTwoOffers.size());
+        log.info("mappedTwoOffers Size " + mappedTwoOffers.size());
+
         OfferDto expectedIncludedOffer2 = OfferDto.builder()
                 .title("Java Developer")
                 .salary("7000 - 9000")
@@ -276,7 +281,7 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
         String savedOfferId = savedOfferDto.id();
 
         //when
-        MvcResult resultWithRetrievedOffer = mockMvc.perform(get("/offers/" + savedOfferId)
+        MvcResult resultWithRetrievedOffer = mockMvc.perform(get(OFFERS_ENDPOINT + "/" + savedOfferId)
                 .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)).andReturn();
 
@@ -299,7 +304,7 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
         
         // given && when && then
         
-        wireMockServer.stubFor(WireMock.get("/offers")
+        wireMockServer.stubFor(WireMock.get(OFFERS_ENDPOINT)
                 .inScenario("Offers scenario")
                 .whenScenarioStateIs("Four Offers")
                 .willReturn(WireMock.aResponse()
@@ -319,7 +324,7 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
                 .until(() -> offerRepository.findAll().size() > sizeWithExpectedTwoOffers
                         );
 
-        log.info("Size after second fetching : "  +  offerRepository.findAll().size());
+        log.info("Size after 3th fetching : "  +  offerRepository.findAll().size());
 
         //then
 
@@ -333,7 +338,7 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
 
         // given && when
 
-        MvcResult resultWithExpectedFourOffers = mockMvc.perform(get("/offers")
+        MvcResult resultWithExpectedFourOffers = mockMvc.perform(get(OFFERS_ENDPOINT)
                 .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)).andReturn();
         String expectedFourOffersJson = resultWithExpectedFourOffers.getResponse().getContentAsString();
@@ -363,7 +368,7 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
         //        step 16: user made POST /offers with header “Authorization: Bearer AAAA.BBBB.CCC” and offer and system returned CREATED(201) with saved offer
 
         //given && when
-        ResultActions resultActions = mockMvc.perform(post("/offers")
+        ResultActions resultActions = mockMvc.perform(post(OFFERS_ENDPOINT)
                 .header("Authorization", "Bearer " + token)
 
                 .content(
@@ -388,7 +393,8 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
                 () -> assertThat(offerDto).isNotNull(),
                 () ->     assertThat(offerDto.offerUrl()).isEqualTo("https://new.com"),
                 () -> assertThat(offerDto.salary()).isEqualTo("7000 - 10000"),
-                () ->  assertThat(offerDto.company()).isEqualTo("new company")
+                () ->  assertThat(offerDto.company()).isEqualTo("new company"),
+                () -> assertThat(offerId).isNotNull()
         );
 
 
@@ -396,7 +402,7 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
 //        step 17: user made GET /offers/newOfferId with header “Authorization: Bearer AAAA.BBBB.CCC” and system returned OK(200) with 1 offer
 
         //given && when
-        MvcResult returnedOffer = mockMvc.perform(get("/offers/" + offerId)
+        MvcResult returnedOffer = mockMvc.perform(get(OFFERS_ENDPOINT + "/" + offerId)
                 .header("Authorization", "Bearer " + token)
 
                 .contentType(MediaType.APPLICATION_JSON)).andReturn();

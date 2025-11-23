@@ -125,6 +125,12 @@
             <artifactId>java-jwt</artifactId>
             <version>4.5.0</version>
         </dependency>
+
+<!--        CONFIGURATION_PROCESSOR-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
