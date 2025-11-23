@@ -24,16 +24,8 @@ public class OfferClientConfig {
     public RestTemplate restTemplate(JobOffersRestTemplateTimeoutConfig restTemplateTimeoutConfig,
                                          RestTemplateResponseErrorHandler restTemplateResponseErrorHandler) {
 
-//        MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-//        converter.setSupportedMediaTypes(List.of(
-//                MediaType.APPLICATION_JSON,
-//                MediaType.TEXT_PLAIN
-//        ));
-
-
 
         return new RestTemplateBuilder()
-//                .additionalMessageConverters(converter)
                 .errorHandler(restTemplateResponseErrorHandler)
                 .setConnectTimeout(Duration.ofMillis(restTemplateTimeoutConfig.connectionTimeout()))
                 .setReadTimeout(Duration.ofMillis(restTemplateTimeoutConfig.readTimeout()))

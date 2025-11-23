@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MvcResult;
@@ -25,6 +26,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 public class OfferControllerFailedRequestIntegrationTest extends BaseIntegrationTest {
 
+    private static final String OFFERS_ENDPOINT = "/offers";
+
     @Autowired
     OfferFacade offerFacade;
 
@@ -37,6 +40,7 @@ public class OfferControllerFailedRequestIntegrationTest extends BaseIntegration
     }
 
     @Test
+    @WithMockUser
     @DisplayName("Should return offer already exists exception when user try to save offer with existing offer url")
     void should_return_offer_already_exists_exception_when_user_try_to_save_offer_with_existing_offer_url() throws Exception {
         //given
@@ -46,7 +50,7 @@ public class OfferControllerFailedRequestIntegrationTest extends BaseIntegration
         offerFacade.saveOffer(offer);
 
         //when
-        ResultActions performed = mockMvc.perform(post("/offers").content(
+        ResultActions performed = mockMvc.perform(post(OFFERS_ENDPOINT).content(
                 """
                         {
                           "title": "Java Developer",
@@ -63,7 +67,9 @@ public class OfferControllerFailedRequestIntegrationTest extends BaseIntegration
 
         //then
         assertAll(
-                () -> assertThat(exceptionResponseDto.message()).isEqualTo("Offer already exists!"),
+                () -> assertThat(exceptionResponseDto.message())
+                        .as("Expected duplicate offer error message.")
+                        .isEqualTo("Offer already exists!"),
                 () -> assertThat(exceptionResponseDto.status()).isEqualTo(HttpStatus.BAD_REQUEST),
                 () -> assertThat(exceptionResponseDto).isNotNull()
         );
@@ -73,10 +79,11 @@ public class OfferControllerFailedRequestIntegrationTest extends BaseIntegration
 
 
     @Test
+    @WithMockUser
     @DisplayName("Should return http status not found when user make get request with not existing offer id")
     void should_return_http_status_not_found_when_user_make_get_request_with_not_existing_offer_id() throws Exception {
         //given && when
-        MvcResult result = mockMvc.perform(get("/offers/9999")
+        MvcResult result = mockMvc.perform(get(OFFERS_ENDPOINT + "/9999")
                 .contentType(MediaType.APPLICATION_JSON)).andReturn();
 
         String jsonResult = result.getResponse().getContentAsString();
@@ -85,7 +92,9 @@ public class OfferControllerFailedRequestIntegrationTest extends BaseIntegration
         //then
         assertAll(
                 () -> assertThat(offerNotFoundResponse).isNotNull(),
-                () -> assertThat(offerNotFoundResponse.message()).isEqualTo("Offer with offerUrl [9999] does not exists!"),
+                () -> assertThat(offerNotFoundResponse.message())
+                        .as("Expected offer not found error message.")
+                        .isEqualTo("Offer with offerUrl [9999] does not exists!"),
                 () -> assertThat(offerNotFoundResponse.status()).isEqualTo(HttpStatus.NOT_FOUND)
         );
     }

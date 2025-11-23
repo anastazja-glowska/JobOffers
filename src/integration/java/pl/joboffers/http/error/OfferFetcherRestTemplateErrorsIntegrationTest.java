@@ -1,5 +1,6 @@
 package pl.joboffers.http.error;
 
+import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
@@ -26,6 +27,7 @@ class OfferFetcherRestTemplateErrorsIntegrationTest implements WireMockJobOffers
 
     public static final String CONTENT_TYPE_HEADER_KEY = "Content-Type";
     public static final String CONTENT_TYPE_VALUE = "application/json";
+    private static final String OFFERS_ENDPOINT = "/offers";
 
     @RegisterExtension
     public static WireMockExtension wireMockServer = WireMockExtension.newInstance()
@@ -40,23 +42,15 @@ class OfferFetcherRestTemplateErrorsIntegrationTest implements WireMockJobOffers
     @Test
     @DisplayName("Should throw internal server error when external server was reset by peer")
     void should_throw_internal_server_exception_when_external_server_was_reset_by_peer(){
-        //given
 
-        wireMockServer.stubFor(WireMock.get("/offers")
-                .willReturn(WireMock.aResponse()
-                        .withStatus(HttpStatus.OK.value())
-                        .withHeader(CONTENT_TYPE_HEADER_KEY, CONTENT_TYPE_VALUE)
-                        .withFault(Fault.CONNECTION_RESET_BY_PEER)));
+        // given && when
+        Throwable throwable = fetchWithStub(WireMock.aResponse()
+                .withStatus(HttpStatus.OK.value())
+                .withHeader(CONTENT_TYPE_HEADER_KEY, CONTENT_TYPE_VALUE)
+                .withFault(Fault.CONNECTION_RESET_BY_PEER));
 
-        // when
-        Throwable throwable = catchThrowable(() -> remoteOfferFetcher.fetchOffersFromServer());
-
-        // then
-
-        assertAll(
-                ()  -> assertThat(throwable).isInstanceOf(ResourceAccessException.class),
-                () -> assertThat(throwable.getMessage()).isEqualTo("500 INTERNAL_SERVER_ERROR")
-        );
+        //then
+        assertInternalServerError(throwable);
 
 
 
@@ -66,68 +60,47 @@ class OfferFetcherRestTemplateErrorsIntegrationTest implements WireMockJobOffers
     @DisplayName("Should throw internal server error when external server fault empty response")
     void should_throw_internal_server_error_when_external_server_fault_empty_response(){
 
-        // given
-
-        wireMockServer.stubFor(WireMock.get("/offers")
-                .willReturn(WireMock.aResponse()
-                        .withStatus(HttpStatus.OK.value()
-                        ).withHeader(CONTENT_TYPE_HEADER_KEY, CONTENT_TYPE_VALUE)
-                        .withFault(Fault.EMPTY_RESPONSE)));
-
-        //when
-        Throwable throwable = catchThrowable(() -> remoteOfferFetcher.fetchOffersFromServer());
+        //given && when
+        Throwable throwable = fetchWithStub(WireMock.aResponse()
+                .withStatus(HttpStatus.OK.value()
+                ).withHeader(CONTENT_TYPE_HEADER_KEY, CONTENT_TYPE_VALUE)
+                .withFault(Fault.EMPTY_RESPONSE));
 
         //then
-        assertAll(
-                () -> assertThat(throwable).isInstanceOf(ResourceAccessException.class),
-                () -> assertThat(throwable.getMessage()).isEqualTo("500 INTERNAL_SERVER_ERROR")
-        );
+        assertInternalServerError(throwable);
+
     }
 
 
     @Test
     @DisplayName("Should throw internal server error when external server malformed response chunk")
     void should_throw_internal_server_error_when_external_server_malformed_response_chunk(){
-        //given
 
-        wireMockServer.stubFor(WireMock.get("/offers")
-                .willReturn(WireMock.aResponse()
-                        .withStatus(HttpStatus.OK.value())
-                        .withHeader(CONTENT_TYPE_HEADER_KEY, CONTENT_TYPE_VALUE)
-                        .withFault(Fault.MALFORMED_RESPONSE_CHUNK)));
+        //given && when
+        Throwable throwable = fetchWithStub(WireMock.aResponse()
+                .withStatus(HttpStatus.OK.value())
+                .withHeader(CONTENT_TYPE_HEADER_KEY, CONTENT_TYPE_VALUE)
+                .withFault(Fault.MALFORMED_RESPONSE_CHUNK));
 
-        //when
+        //then
+        assertInternalServerError(throwable);
 
-        Throwable throwable = catchThrowable(() -> remoteOfferFetcher.fetchOffersFromServer());
-
-        // then
-        assertAll(
-                () -> assertThat(throwable).isInstanceOf(ResourceAccessException.class),
-                () -> assertThat(throwable.getMessage()).isEqualTo("500 INTERNAL_SERVER_ERROR")
-        );
     }
 
 
     @Test
     @DisplayName("Should throw internal server error when external server fault random data then close")
     void should_throw_internal_server_error_when_external_server_fault_random_data_then_close(){
-        // given
-        wireMockServer.stubFor(WireMock.get("/offers")
-                .willReturn(WireMock.aResponse()
-                        .withStatus(HttpStatus.OK.value())
-                        .withHeader(CONTENT_TYPE_HEADER_KEY, CONTENT_TYPE_VALUE)
-                        .withFault(Fault.RANDOM_DATA_THEN_CLOSE)
-                ));
 
-        //when
-
-        Throwable throwable = catchThrowable(() -> remoteOfferFetcher.fetchOffersFromServer());
-
-        // then
-        assertAll(
-                () -> assertThat(throwable).isInstanceOf(ResourceAccessException.class),
-                () -> assertThat(throwable.getMessage()).isEqualTo("500 INTERNAL_SERVER_ERROR")
+        //given && when
+        Throwable throwable = fetchWithStub(WireMock.aResponse()
+                .withStatus(HttpStatus.OK.value())
+                .withHeader(CONTENT_TYPE_HEADER_KEY, CONTENT_TYPE_VALUE)
+                .withFault(Fault.RANDOM_DATA_THEN_CLOSE)
         );
+
+        //then
+        assertInternalServerError(throwable);
 
 
     }
@@ -136,24 +109,18 @@ class OfferFetcherRestTemplateErrorsIntegrationTest implements WireMockJobOffers
     @DisplayName("Should throw internal server error when delay is 5000 ms and client has 2000 ms read timeout")
     void should_throw_internal_server_error_when_delay_is_5000_ms_and_client_has_2000_ms_read_timeout(){
 
-        //given
-        wireMockServer.stubFor(WireMock.get("/offers")
-                .willReturn(WireMock.aResponse()
-                        .withStatus(HttpStatus.OK.value())
-                        .withHeader(CONTENT_TYPE_HEADER_KEY, CONTENT_TYPE_VALUE)
-                        .withBody(retrieveFourOffersJson())
-                        .withFixedDelay(5000)
-                ));
+        //given && when
 
-        //when
-
-        Throwable throwable = catchThrowable(() -> remoteOfferFetcher.fetchOffersFromServer());
-
-        // then
-        assertAll(
-                () -> assertThat(throwable).isInstanceOf(ResourceAccessException.class),
-                () -> assertThat(throwable.getMessage()).isEqualTo("500 INTERNAL_SERVER_ERROR")
+        Throwable throwable = fetchWithStub(WireMock.aResponse()
+                .withStatus(HttpStatus.OK.value())
+                .withHeader(CONTENT_TYPE_HEADER_KEY, CONTENT_TYPE_VALUE)
+                .withBody(retrieveFourOffersJson())
+                .withFixedDelay(5000)
         );
+
+        //then
+        assertInternalServerError(throwable);
+
 
 
     }
@@ -165,7 +132,7 @@ class OfferFetcherRestTemplateErrorsIntegrationTest implements WireMockJobOffers
 
         //given
 
-        wireMockServer.stubFor(WireMock.get("/offers")
+        wireMockServer.stubFor(WireMock.get(OFFERS_ENDPOINT)
                 .willReturn(WireMock.aResponse()
                         .withStatus(HttpStatus.NO_CONTENT.value())
                         .withHeader(CONTENT_TYPE_HEADER_KEY, CONTENT_TYPE_VALUE)
@@ -177,7 +144,9 @@ class OfferFetcherRestTemplateErrorsIntegrationTest implements WireMockJobOffers
 
         // then
         assertAll(
-                () -> assertThat(throwable).isInstanceOf(NoContentException.class),
+                () -> assertThat(throwable)
+                        .as("Throwable should be instance of NoContentException")
+                        .isInstanceOf(NoContentException.class),
                 () -> assertThat(throwable.getMessage()).isEqualTo("204 NO_CONTENT")
         );
 
@@ -190,7 +159,7 @@ class OfferFetcherRestTemplateErrorsIntegrationTest implements WireMockJobOffers
     void should_throw_not_found_404_exception_when_external_server_return_not_found_status(){
 
         //given
-        wireMockServer.stubFor(WireMock.get("/offers")
+        wireMockServer.stubFor(WireMock.get(OFFERS_ENDPOINT)
                 .willReturn(WireMock.aResponse()
                         .withStatus(HttpStatus.NOT_FOUND.value())
                         .withHeader(CONTENT_TYPE_HEADER_KEY, CONTENT_TYPE_VALUE)));
@@ -201,7 +170,9 @@ class OfferFetcherRestTemplateErrorsIntegrationTest implements WireMockJobOffers
 
         // then
         assertAll(
-                () -> assertThat(throwable).isInstanceOf(ResponseStatusException.class)
+                () -> assertThat(throwable)
+                        .as("Throwable should be instance of ResponseStatusException")
+                        .isInstanceOf(ResponseStatusException.class)
         );
 
     }
@@ -212,7 +183,7 @@ class OfferFetcherRestTemplateErrorsIntegrationTest implements WireMockJobOffers
     void should_throw_401_exception_when_external_server_return_unauthorized_status(){
 
         //given
-        wireMockServer.stubFor(WireMock.get("/offers")
+        wireMockServer.stubFor(WireMock.get(OFFERS_ENDPOINT)
                 .willReturn(WireMock.aResponse()
                         .withStatus(HttpStatus.UNAUTHORIZED.value())
                         .withHeader(CONTENT_TYPE_HEADER_KEY, CONTENT_TYPE_VALUE))
@@ -224,9 +195,28 @@ class OfferFetcherRestTemplateErrorsIntegrationTest implements WireMockJobOffers
 
         // then
         assertAll(
-                () -> assertThat(throwable).isInstanceOf(ResponseStatusException.class)
+                () -> assertThat(throwable)
+                        .as("Throwable should be instance of ResponseStatusException")
+                        .isInstanceOf(ResponseStatusException.class)
         );
 
+
+    }
+
+    private Throwable fetchWithStub(ResponseDefinitionBuilder response){
+
+        wireMockServer.stubFor(WireMock.get(OFFERS_ENDPOINT).willReturn(response));
+        return catchThrowable(() -> remoteOfferFetcher.fetchOffersFromServer());
+    }
+
+    private void assertInternalServerError(Throwable throwable){
+
+        assertAll(
+                () -> assertThat(throwable)
+                        .as("Throwable should be instance of Resource Access Exception")
+                        .isInstanceOf(ResourceAccessException.class),
+                () -> assertThat(throwable.getMessage()).isEqualTo("500 INTERNAL_SERVER_ERROR")
+        );
 
     }
 
