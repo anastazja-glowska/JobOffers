@@ -17,10 +17,7 @@ public class RestTemplateErrorsHandler {
     public RestTemplateExceptionResponseDto handleResponseStatusException(ResponseStatusException ex) {
         String message = ex.getMessage();
         HttpStatusCode statusCode = ex.getStatusCode();
-
-
         log.error("HTTP error: {} - {}", statusCode, message);
-
         return new RestTemplateExceptionResponseDto(message, statusCode);
     }
 }

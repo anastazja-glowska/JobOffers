@@ -53,6 +53,7 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
     OfferRepository offerRepository;
 
 
+
     @Container
     public static final MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:6.0");
 
@@ -65,7 +66,6 @@ class UserLoggedInAndRetrievedOffersIntegrationTest extends BaseIntegrationTest 
     @Test
     @DisplayName("Should user register and log in and then he can retrieve offers")
     void should_user_register_and_log_in_and_then_he_can_retrieve_offers() throws Exception {
-
 
 //        step 1: there are no offers in external HTTP server (http://ec2-3-127-218-34.eu-central-1.compute.amazonaws.com:5057/offers)
 

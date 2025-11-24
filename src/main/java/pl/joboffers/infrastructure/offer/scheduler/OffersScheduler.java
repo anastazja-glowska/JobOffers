@@ -25,19 +25,6 @@ public class OffersScheduler {
     private static final SimpleDateFormat dateFormat= new SimpleDateFormat("HH:mm:ss");
 
 
-
-//    @Scheduled(fixedDelayString = "${job.offers.scheduled.offers.occurrence.delay}")
-//        public List<OfferDto> scheduleOffers(){
-//
-//        List<OfferDto> offerDtos = offerFacade.fetchAllOffersAndSaveIfNotExists();
-//
-
-//        log.info(FINISHED_INFO, dateFormat.format(new Date()));
-//        return  offerDtos;
-//
-//    }
-
-
     @Scheduled(fixedDelayString = "${job.offers.scheduled.offers.occurrence}")
     public List<OfferDto> scheduleOffers() throws JsonProcessingException {
         log.info(STARTED_INFO, dateFormat.format(new Date()));
