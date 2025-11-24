@@ -3,6 +3,7 @@ package pl.joboffers.domain.offer;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
 import pl.joboffers.domain.offer.dto.OfferDto;
 
@@ -15,6 +16,7 @@ public class OfferFacade {
     private final OfferFetcher offerFetcher;
     private final OfferRetriever offerRetriever;
 
+    @Cacheable("jobOffers")
     public List<OfferDto> findAllOffers() {
         return offerRetriever.findAllOffers();
     }
