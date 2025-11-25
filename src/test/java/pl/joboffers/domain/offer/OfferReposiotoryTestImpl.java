@@ -49,7 +49,7 @@ class OfferReposiotoryTestImpl implements OfferRepository {
     @Override
     public Offer  save(Offer offer) {
         if(offersDatabase.values().stream().anyMatch(offer1 -> offer1.getOfferUrl().equals(offer.getOfferUrl()))) {
-            throw new OfferAlreadyExistsException("Offer with this id already exists");
+            throw new OfferAlreadyExistsException("Offer with this url already exists");
         }
 
         if(offer.getId() == null){
@@ -73,7 +73,12 @@ class OfferReposiotoryTestImpl implements OfferRepository {
     public <S extends Offer> List<S> saveAll(Iterable<S> entities) {
         Stream<S> stream = StreamSupport.stream(entities.spliterator(), false);
         List<S> list = stream.toList();
-        list.forEach(offer -> offersDatabase.put(offer.getId(), offer));
+        list.forEach(offer -> {
+            if(offer.getId() == null){
+                offer.setId(UUID.randomUUID().toString());
+            }
+            offersDatabase.put(offer.getId(), offer);
+        } );
         return list;
     }
 

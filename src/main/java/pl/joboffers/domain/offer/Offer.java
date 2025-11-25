@@ -19,6 +19,7 @@ import org.springframework.data.mongodb.core.mapping.Field;
 @Builder
 @EqualsAndHashCode(of = "id")
 @ToString
+@Setter
 @Document(collection = "offers")
 public class Offer {
 

@@ -2,6 +2,8 @@ package pl.joboffers.domain.offer;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.log4j.Log4j2;
+import org.assertj.core.groups.Tuple;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import pl.joboffers.domain.offer.dto.OfferDto;
@@ -11,9 +13,18 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.assertj.core.api.AssertionsForClassTypes.tuple;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 @Log4j2
 class OfferFacadeTest {
+
+    private static final String TITLE_1 = "Title 1";
+    private static final String COMPANY_1 = "Company 1";
+    private static final String URL_1 = "https://www.google1.com";
+    private static final String ID_1 = "001";
+    private static final String SALARY_1 = "10 000";
+
 
     OfferRepository offerRepository = new OfferReposiotoryTestImpl();
 
@@ -31,8 +42,6 @@ class OfferFacadeTest {
     @Test
     @DisplayName("Should fetch all offers and save all If Not Exists")
     void should_fetch_All_Offers_And_save_All_If_Not_Exists() throws JsonProcessingException {
-
-
         //when
         List<OfferDto> result = offerFacade.fetchAllOffersAndSaveIfNotExists();
 
@@ -40,15 +49,20 @@ class OfferFacadeTest {
         log.info("OfferDtos size " + result.size());
 
         OfferDto expectedIncludedOffer = OfferDto.builder()
-                .id("001")
-                .title("Title 1")
-                .offerUrl("https://www.google1.com")
-                .company("Company 1")
-                .salary("10 000")
+                .id(ID_1)
+                .title(TITLE_1)
+                .offerUrl(URL_1)
+                .company(COMPANY_1)
+                .salary(SALARY_1)
                 .build();
 
-        assertThat(result).hasSize(3);
-        assertThat(result).contains(expectedIncludedOffer);
+        assertAll(
+                () -> assertThat(result).hasSize(3),
+                () -> assertThat(result)
+                        .extracting(OfferDto::title, OfferDto::company, OfferDto::salary, OfferDto::offerUrl)
+                        .contains(tuple(expectedIncludedOffer.title(), expectedIncludedOffer.company(), expectedIncludedOffer.salary()
+                                , expectedIncludedOffer.offerUrl()))
+        );
 
 
     }
@@ -64,8 +78,6 @@ class OfferFacadeTest {
 
         log.info("RemoteOfferDtos size " + remoteOfferDtos.size());
 
-//        offerRepository.saveAll(offerList);
-
         offerList.stream().forEach(offer -> offerRepository.save(offer));
 
 
@@ -74,49 +86,42 @@ class OfferFacadeTest {
 
         //then
 
-        log.info("OfferDtos size " + result.size());
         assertThat(result).isEmpty();
         assertThat(remoteOfferDtos).hasSize(3);
     }
 
     @Test
     @DisplayName("Should save new offer when it does not exists in database")
-    void should_save_new_offer_when_it_does_not_exists_in_database(){
+    void should_save_new_offer_when_it_does_not_exists_in_database() {
         //given
 
-        Offer offer = new Offer("001", "Title", "Company", "10 000",
-                "https://www.google1.com");
+        Offer offer = createOffer();
 
         //when
         OfferDto offerDto = offerFacade.saveOffer(offer);
 
         //then
 
-        OfferDto expectedOffer = OfferDto.builder()
-                .id("001")
-                .title("Title")
-                .offerUrl("https://www.google1.com")
-                .company("Company")
-                .salary("10 000")
-                .build();
+        OfferDto expectedOffer = createOfferDto();
 
-        assertThat(offerDto).isEqualTo(expectedOffer);
-        assertThat(offerDto).isNotNull();
-        assertThat(offerDto.company()).isEqualTo(expectedOffer.company());
-        assertThat(offerDto.salary()).isEqualTo(expectedOffer.salary());
-        assertThat(offerDto.id()).isEqualTo(expectedOffer.id());
+        assertAll(
+                () -> assertThat(offerDto).isEqualTo(expectedOffer),
+                () -> assertThat(offerDto).isNotNull(),
+                () -> assertThat(offerDto.company()).isEqualTo(expectedOffer.company()),
+                () -> assertThat(offerDto.salary()).isEqualTo(expectedOffer.salary()),
+                () -> assertThat(offerDto.id()).isEqualTo(expectedOffer.id())
+        );
 
     }
 
+
     @Test
     @DisplayName("Should throw offer already exists exception when saved offer already exists")
-    void should_throw_offer_already_exists_exception_when_saved_offer_already_exists(){
+    void should_throw_offer_already_exists_exception_when_saved_offer_already_exists() {
 
         //given
 
-        Offer offer = new Offer("001", "Title", "Company", "10 000",
-                "https://www.google1.com");
-
+        Offer offer = createOffer();
         offerRepository.save(offer);
 
         //when
@@ -124,44 +129,38 @@ class OfferFacadeTest {
 
         //then
         assertThat(result).isInstanceOf(OfferAlreadyExistsException.class);
-        assertThat(result.getMessage()).isEqualTo("Offer already exists");
+        assertThat(result.getMessage()).isEqualTo("Offer already exists!");
     }
 
     @Test
     @DisplayName("Should find existing offer by id")
-    void should_find_existing_offer_by_id(){
+    void should_find_existing_offer_by_id() {
         //given
 
-        Offer offer = new Offer("001", "Title", "Company", "10 000",
-                "https://www.google1.com");
+        Offer offer = createOffer();
 
         offerRepository.save(offer);
 
         //when
-        OfferDto result = offerFacade.findOfferById("001");
+        OfferDto result = offerFacade.findOfferById(ID_1);
 
 
         //then
-        OfferDto expectedOffer = OfferDto.builder()
-                .id("001")
-                .title("Title")
-                .offerUrl("https://www.google1.com")
-                .company("Company")
-                .salary("10 000")
-                .build();
+        OfferDto expectedOffer = createOfferDto();
 
-        assertThat(result).isEqualTo(expectedOffer);
-        assertThat(result).isNotNull();
-        assertThat(result.company()).isEqualTo(expectedOffer.company());
-        assertThat(result.salary()).isEqualTo(expectedOffer.salary());
-        assertThat(result.id()).isEqualTo(expectedOffer.id());
-
+        assertAll(
+                () -> assertThat(result).isEqualTo(expectedOffer),
+                () -> assertThat(result).isNotNull(),
+                () -> assertThat(result.company()).isEqualTo(expectedOffer.company()),
+                () -> assertThat(result.salary()).isEqualTo(expectedOffer.salary()),
+                () -> assertThat(result.id()).isEqualTo(expectedOffer.id())
+        );
 
     }
 
     @Test
     @DisplayName("Should retrieve all existing offers from database")
-    void should_retrieve_all_existing_offers_from_database(){
+    void should_retrieve_all_existing_offers_from_database() {
 
         //given
         Offer offer = new Offer("004", "Title", "Company", "10 000",
@@ -169,16 +168,12 @@ class OfferFacadeTest {
 
         OfferDto saved = offerFacade.saveOffer(offer);
 
-        log.info("Saved offer " + saved);
-
 
         RemoteOfferRetriever remoteOfferRetriever = new RemoteOfferRetriever();
         List<RemoteOfferDto> remoteOfferDtos = remoteOfferRetriever.fetchOffersFromServer();
         List<Offer> offerList = OfferMapper.mapFromRemoteOfferDtos(remoteOfferDtos);
 
         log.info("RemoteOfferDtos size " + remoteOfferDtos.size());
-
-//        offerRepository.saveAll(offerList);
         offerList.stream().forEach(offer1 -> offerFacade.saveOffer(offer1));
 
         //when
@@ -209,13 +204,10 @@ class OfferFacadeTest {
                 "https://www.google1.com");
 
         Offer saved = offerRepository.save(offer);
-
-        log.info("Saved offer " + saved);
-
-
         //when
 
         List<OfferDto> result = offerFacade.fetchAllOffersAndSaveIfNotExists();
+        log.info("Fetch all offer size " + result.size());
 
         //then
 
@@ -235,21 +227,48 @@ class OfferFacadeTest {
                 .salary("8 000")
                 .build();
 
-        assertThat(result).hasSize(2);
-        assertThat(result).containsOnly(expectedOfferIncluded,expectedOfferIncluded2);
+        assertAll(
+                () -> assertThat(result).hasSize(2),
+                () -> assertThat(result)
+                        .extracting(OfferDto::title, OfferDto::offerUrl, OfferDto::company, OfferDto::salary)
+                        .contains(tuple(expectedOfferIncluded.title(), expectedOfferIncluded.offerUrl(),
+                                expectedOfferIncluded.company(), expectedOfferIncluded.salary())),
+                () -> assertThat(result)
+                        .extracting(OfferDto::title, OfferDto::offerUrl, OfferDto::company, OfferDto::salary)
+                        .contains(tuple(expectedOfferIncluded2.title(), expectedOfferIncluded2.offerUrl(),
+                                expectedOfferIncluded2.company(), expectedOfferIncluded2.salary()))
+        );
+
 
     }
 
     @Test
     @DisplayName("Should throw offer not found exception when offer with id not found")
-    void should_throw_offer_not_found_exception_when_offer_with_id_not_found(){
+    void should_throw_offer_not_found_exception_when_offer_with_id_not_found() {
 
 
         //when
-        Throwable result = catchThrowable(() -> offerFacade.findOfferById("001"));
+        Throwable result = catchThrowable(() -> offerFacade.findOfferById(ID_1));
 
         //then
         assertThat(result).isInstanceOf(OfferNotFoundException.class);
 
+    }
+
+    private static Offer createOffer() {
+        return new Offer(ID_1, "Title", "Company", SALARY_1,
+                URL_1);
+
+    }
+
+    private static OfferDto createOfferDto() {
+        OfferDto expectedOffer = OfferDto.builder()
+                .id(ID_1)
+                .title("Title")
+                .offerUrl(URL_1)
+                .company("Company")
+                .salary(SALARY_1)
+                .build();
+        return expectedOffer;
     }
 }
