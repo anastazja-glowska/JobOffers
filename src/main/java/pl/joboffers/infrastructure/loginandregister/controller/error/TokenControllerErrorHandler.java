@@ -29,7 +29,7 @@ public class TokenControllerErrorHandler {
     @ResponseStatus(HttpStatus.CONFLICT)
     @ResponseBody
     public RegisterErrorResponseDto handleDuplicateKeyException(DuplicateKeyException exception){
-        log.error(DUPLICATE_KEY);
+        log.error(DUPLICATE_KEY + exception.getMessage());
         return new RegisterErrorResponseDto(USER_ALREADY_EXISTS, HttpStatus.CONFLICT);
     }
 }

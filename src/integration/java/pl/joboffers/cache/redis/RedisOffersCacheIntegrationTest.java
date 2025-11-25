@@ -32,6 +32,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class RedisOffersCacheIntegrationTest extends BaseIntegrationTest implements WireMockJobOffersResponse {
 
+
+    private static final String OFFERS_ENDPOINT = "/offers";
+    private static final String REGISTER_ENDPOINT = "/register";
+    private static final String TOKEN_ENDPOINT = "/token";
+    private static final String AUTHORIZATION = "Authorization";
+    private static final String AUTHORIZATION_BEARER = "Bearer ";
+
+
     @Container
     private static final GenericContainer<?> REDIS;
 
@@ -60,7 +68,7 @@ class RedisOffersCacheIntegrationTest extends BaseIntegrationTest implements Wir
         // step 1: someUser was registered with somePassword
 
         //given && when
-        ResultActions registeredAction = mockMvc.perform(post("/register")
+        ResultActions registeredAction = mockMvc.perform(post(REGISTER_ENDPOINT)
                 .content(retrieveSomeUserWithSomePassword())
                 .contentType(MediaType.APPLICATION_JSON));
 
@@ -71,7 +79,7 @@ class RedisOffersCacheIntegrationTest extends BaseIntegrationTest implements Wir
         // step 2: user log in
 
         //given && when
-        ResultActions performedToken = mockMvc.perform(post("/token")
+        ResultActions performedToken = mockMvc.perform(post(TOKEN_ENDPOINT)
                 .content(retrieveSomeUserWithSomePassword())
                 .contentType(MediaType.APPLICATION_JSON));
 
@@ -84,8 +92,8 @@ class RedisOffersCacheIntegrationTest extends BaseIntegrationTest implements Wir
         // step 3: should save to cache offers request
 
         //given && when
-        mockMvc.perform(get("/offers")
-                .header("Authorization", "Bearer " + token)
+        mockMvc.perform(get(OFFERS_ENDPOINT)
+                .header(AUTHORIZATION, AUTHORIZATION_BEARER + token)
                 .contentType(MediaType.APPLICATION_JSON));
 
         //then
@@ -93,12 +101,13 @@ class RedisOffersCacheIntegrationTest extends BaseIntegrationTest implements Wir
         assertThat(cacheManager.getCacheNames().contains("jobOffers")).isTrue();
 
         // step 4: cache should be invalidated
+        //given && when && then
         await()
                 .atMost(Duration.ofSeconds(4))
                 .pollInterval(Duration.ofSeconds(1))
                 .untilAsserted(() -> {
-                    mockMvc.perform(get("/offers")
-                            .header("Authorization", "Bearer " + token)
+                    mockMvc.perform(get(OFFERS_ENDPOINT)
+                            .header(AUTHORIZATION, AUTHORIZATION_BEARER + token)
                             .contentType(MediaType.APPLICATION_JSON));
 
                     verify(offerFacade, atLeast(2)).findAllOffers();

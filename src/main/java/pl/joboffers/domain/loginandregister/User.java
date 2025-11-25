@@ -27,6 +27,7 @@ import java.util.List;
 @ToString
 @Builder
 @Document
+@Setter
 class User implements UserDetails {
 
 

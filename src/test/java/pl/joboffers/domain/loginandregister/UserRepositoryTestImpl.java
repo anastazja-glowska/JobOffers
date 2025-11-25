@@ -1,5 +1,6 @@
 package pl.joboffers.domain.loginandregister;
 
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -9,6 +10,7 @@ import org.springframework.data.repository.query.FluentQuery;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
@@ -26,6 +28,14 @@ class UserRepositoryTestImpl implements UserRepository {
 
     @Override
     public User  save(User user) {
+        if(usersDatabase.values().stream().anyMatch(user1 -> user1.getEmail().equals(user.getEmail()))) {
+            throw new DuplicateKeyException("User already exists!");
+        }
+
+        if(user.getId() == null){
+            user.setId(UUID.randomUUID().toString());
+        }
+
         usersDatabase.put(user.getId(),  user);
         return user;
     }

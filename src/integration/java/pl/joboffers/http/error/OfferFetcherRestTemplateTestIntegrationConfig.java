@@ -7,6 +7,8 @@ import pl.joboffers.infrastructure.offer.http.OfferClientConfig;
 
 class OfferFetcherRestTemplateTestIntegrationConfig extends OfferClientConfig {
 
+    private static final String URI = "http://localhost";
+
 
     public RemoteOfferFetcher remoteOfferFetcher(int port, long connectionTimeout, long readTimeout){
 
@@ -15,7 +17,7 @@ class OfferFetcherRestTemplateTestIntegrationConfig extends OfferClientConfig {
 
         RestTemplate restTemplate = restTemplate(jobOffersConfig, restTemplateResponseErrorHandler());
 
-        return remoteOfferFetcher(restTemplate, "http://localhost", port);
+        return remoteOfferFetcher(restTemplate, URI, port);
 
 
     }
