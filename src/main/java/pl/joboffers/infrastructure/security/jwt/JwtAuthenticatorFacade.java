@@ -32,11 +32,10 @@ public class JwtAuthenticatorFacade {
                 new UsernamePasswordAuthenticationToken(loginRequest.username(), loginRequest.password())
         );
 
-        User user  = (User) authentication.getPrincipal();
+        User user = (User) authentication.getPrincipal();
 
         String token = createToken(user);
         String username = user.getUsername();
-
 
 
         return JwtResponseDto.builder()

@@ -22,7 +22,7 @@ public class OfferClientConfig {
 
     @Bean
     public RestTemplate restTemplate(JobOffersRestTemplateTimeoutConfig restTemplateTimeoutConfig,
-                                         RestTemplateResponseErrorHandler restTemplateResponseErrorHandler) {
+                                     RestTemplateResponseErrorHandler restTemplateResponseErrorHandler) {
 
 
         return new RestTemplateBuilder()

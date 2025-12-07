@@ -19,8 +19,6 @@ import java.util.Collection;
 import java.util.List;
 
 
-
-
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(of = "id")
@@ -29,7 +27,6 @@ import java.util.List;
 @Document
 @Setter
 class User implements UserDetails {
-
 
 
     @Id

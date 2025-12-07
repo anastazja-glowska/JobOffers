@@ -9,7 +9,7 @@ import java.util.Optional;
 import java.util.Set;
 
 @Repository
-public interface OfferRepository extends MongoRepository<Offer,String> {
+public interface OfferRepository extends MongoRepository<Offer, String> {
 
     boolean existsOfferByOfferUrl(String offerUrl);
 

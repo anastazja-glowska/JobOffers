@@ -11,10 +11,11 @@ class UserAdder {
 
 
     private final UserRepository userRepository;
+
     UserRegisterResponseDto register(UserRegisterRequestDto user) {
 
 
-        User userToSave = new User(user.username(),user.password());
+        User userToSave = new User(user.username(), user.password());
 
         User saved = userRepository.save(userToSave);
 

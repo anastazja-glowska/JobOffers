@@ -12,7 +12,6 @@ class OfferConfiguration {
                             OfferRetriever offerRetriever) {
 
 
-
         return new OfferFacade(offerAdder, offerFetcher, offerRetriever);
     }
 }

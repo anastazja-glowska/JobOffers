@@ -14,7 +14,7 @@ class RemoteOfferRetriever implements RemoteOfferFetcher {
         return generateOffersForTests();
     }
 
-    private List<RemoteOfferDto> generateOffersForTests(){
+    private List<RemoteOfferDto> generateOffersForTests() {
 
         RemoteOfferDto remoteOfferDto1 = RemoteOfferDto.builder()
                 .title("Title 1")

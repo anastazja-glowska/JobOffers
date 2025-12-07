@@ -22,7 +22,7 @@ class OfferRetriever {
     OfferDto findOfferById(String id) {
 
         Offer offer = offerRepository.findById(id)
-                .orElseThrow(() -> new OfferNotFoundException(String.format("Offer with offerUrl [%s] does not exists!", id )));
+                .orElseThrow(() -> new OfferNotFoundException(String.format("Offer with offerUrl [%s] does not exists!", id)));
 
         log.info(OFFER_URL + offer.getOfferUrl());
         return OfferMapper.mapFromOffer(offer);
@@ -36,7 +36,7 @@ class OfferRetriever {
 
     }
 
-    boolean existsOfferByOfferUrl(String offerUrl){
+    boolean existsOfferByOfferUrl(String offerUrl) {
         return offerRepository.existsOfferByOfferUrl(offerUrl);
     }
 

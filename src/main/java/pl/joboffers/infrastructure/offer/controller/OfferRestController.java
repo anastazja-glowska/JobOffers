@@ -36,14 +36,14 @@ public class OfferRestController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<OfferDto> fetchOffer(@PathVariable String id){
+    public ResponseEntity<OfferDto> fetchOffer(@PathVariable String id) {
         OfferDto offerById = offerFacade.findOfferById(id);
         log.debug("Fetching offer with id {}", id);
         return ResponseEntity.ok(offerById);
     }
 
     @PostMapping
-    public ResponseEntity<OfferDto> createOffer(@RequestBody @Valid OfferRequestDto request){
+    public ResponseEntity<OfferDto> createOffer(@RequestBody @Valid OfferRequestDto request) {
         Offer toSave = new Offer(request.title(), request.company(), request.salary(), request.offerUrl());
         OfferDto offerDto = offerFacade.saveOffer(toSave);
         return ResponseEntity.status(HttpStatus.CREATED).body(offerDto);

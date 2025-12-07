@@ -21,11 +21,11 @@ public class OfferFacade {
         return offerRetriever.findAllOffers();
     }
 
-    public OfferDto findOfferById(String id){
+    public OfferDto findOfferById(String id) {
         return offerRetriever.findOfferById(id);
     }
 
-    public OfferDto saveOffer(Offer offer){
+    public OfferDto saveOffer(Offer offer) {
         return offerAdder.saveOffer(offer);
     }
 

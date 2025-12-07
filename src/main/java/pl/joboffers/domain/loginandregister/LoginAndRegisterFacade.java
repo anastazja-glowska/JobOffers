@@ -13,7 +13,7 @@ public class LoginAndRegisterFacade {
     private final UserAdder userAdder;
     private final UserRetriever userRetriever;
 
-    public UserDto findByUserName(String userName){
+    public UserDto findByUserName(String userName) {
         return userRetriever.findByUserName(userName);
     }
 

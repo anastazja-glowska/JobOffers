@@ -11,10 +11,10 @@ import java.util.List;
 @RequiredArgsConstructor
 @Component
 class OfferFetcher {
-    
+
     private final OfferRepository offerRepository;
     private final RemoteOfferFetcher remoteOfferFetcher;
-    
+
     List<OfferDto> fetchAllOffersAndSaveAllIfNotExists() throws JsonProcessingException {
         List<RemoteOfferDto> remoteOffers = remoteOfferFetcher.fetchOffersFromServer();
 
@@ -28,6 +28,6 @@ class OfferFetcher {
         offerRepository.saveAll(toSave);
         return OfferMapper.mapFromOffers(toSave);
     }
-    
-    
+
+
 }
